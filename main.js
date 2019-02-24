@@ -1,9 +1,14 @@
 bob_standard = module.exports = {
+  say: function(s) {
+    console.log(s)
+  },
+
   log: function(n, b) {
     return Math.log(n)/(b ? Math.log(b) : 1)
   },
 
   round: function(x, n) {
+    n = n || 0
     return Number.parseFloat(x.toFixed(n))
   },
 
@@ -82,7 +87,7 @@ bob_standard = module.exports = {
       return n
     },
 
-    sort: function(arr, s) {
+    sort: function(arr, s) {
       let swapp, n = arr.length - 1
       s -= 1
       do {
@@ -107,20 +112,21 @@ bob_standard = module.exports = {
         s += char
       }
       return s
-    }
-  },
+    },
 
-  matrix: function(x, y, n) {
-    let m = [],
-      c = n || 0
-    for(var j=0; j<y; j++) {
-      m.push([])
-      for(var i=0; i<x; i++) {
-        if(typeof n == 'function') {
-          c = n()
+    matrix: function(x, y, n) {
+      let m = [],
+        c = n || 0
+      for(var j=0; j<y; j++) {
+        m.push([])
+        for(var i=0; i<x; i++) {
+          if(typeof n == 'function') {
+            c = n()
+          }
+          m[j].push(c)
         }
-        m[j].push(c)
       }
+      return m
     }
   }
 }
