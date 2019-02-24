@@ -3,6 +3,10 @@ bob_standard = module.exports = {
     console.log(s)
   },
 
+  err: function(s) {
+    console.error(s)
+  },
+
   log: function(n, b) {
     return Math.log(n)/(b ? Math.log(b) : 1)
   },
@@ -14,6 +18,14 @@ bob_standard = module.exports = {
 
   rand: function(f, t) {
     return Math.random() * (t - f) + f
+  },
+
+  leng: function(obj) {
+    let l = 0
+    for(var k in obj)
+      if(obj.hasOwnProperty(k))
+        l++
+    return l
   },
 
   check: {
