@@ -1,0 +1,14 @@
+{
+  "name": "bob-standard",
+  "version": "0.1.0",
+  "description": "bobs standard library with basic stuff",
+  "main": "main.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "CodingBobby",
+  "repository": {
+    "url": "https://github.com/CodingBobby/bob-standard"
+  },
+  "license": "ISC"
+}
