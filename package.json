@@ -6,9 +6,17 @@
   "scripts": {
     "test": "test"
   },
-  "author": "CodingBobby",
+  "author": {
+    "name": "CodingBobby",
+    "email": "contact@codingbobby.xyz",
+    "url": "https://github.com/CodingBobby"
+  },
   "repository": {
     "url": "https://github.com/CodingBobby/bob-standard"
+  },
+  "bugs": {
+    "url": "https://github.com/CodingBobby/bob-standard/issues",
+    "email": "contact@codingbobby.xyz"
   },
   "license": "ISC"
 }

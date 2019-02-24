@@ -108,5 +108,19 @@ bob_standard = module.exports = {
       }
       return s
     }
+  },
+
+  matrix: function(x, y, n) {
+    let m = [],
+      c = n || 0
+    for(var j=0; j<y; j++) {
+      m.push([])
+      for(var i=0; i<x; i++) {
+        if(typeof n == 'function') {
+          c = n()
+        }
+        m[j].push(c)
+      }
+    }
   }
 }
