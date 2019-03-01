@@ -12,7 +12,7 @@ Thats all! Now you have access to all provided functions. Please note that this 
 
 ## Example usage
 
-Here are a few examples filled with methods from this library. For more details on each method, please check out the [documentation]().
+Here are a few examples filled with methods from this library. For more details on each method, please check out the [documentation](https://github.com/CodingBobby/bob-standard/blob/master/DOCS.md).
 
 ### Some math
 

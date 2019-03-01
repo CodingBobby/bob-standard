@@ -1,5 +1,8 @@
 bob = module.exports = {
    say, err, log, round, rand, leng, clone,
+   pi, pis, pih, es, pipi, e, re, ree, ii,
+   ie, phi, ipi, pie, gan, chi, rtau, rtaue,
+   r2, r3, r5, llim, ln2, r45,
    check: {
       prime, palin, int, square, cross
    },
@@ -14,11 +17,20 @@ bob = module.exports = {
    },
    Vector: class {
       constructor(...a) {
+         if(a.length == 0) {
+            return bob.err('vector must have items')
+         }
          let v = []
-         if (typeof a[0] == 'object')
+         if(a[0] instanceof bob.Vector) {
+            for(var i in a[0].v) {
+               v.push(clone(a[0].v[i]))
+            }
+         } else {
+            if(typeof a[0] == 'object')
             a = a[0]
-         for (var i = 0; i < a.length; i++) {
-            v.push([a[i]])
+            for(var i = 0; i < a.length; i++) {
+               v.push([a[i]])
+            }
          }
          this.v = v
          this.d = this.v.length
@@ -35,13 +47,14 @@ bob = module.exports = {
          this.l = root
       }
       add(that) {
-         if(that instanceof Vector && this.d == that.d) {
+         if(this.check(that)) {
             for(var j in this.v) {
                for(var i in this.v[j]) {
                   this.v[j][i] += that.v[j][i]
                }
             }
          }
+         this.update()
       }
       sub(that) {
          if(this.check(that)) {
@@ -51,6 +64,7 @@ bob = module.exports = {
                }
             }
          }
+         this.update()
       }
       norm() {
          for(var j in this.v) {
@@ -65,8 +79,11 @@ bob = module.exports = {
             if(this.d == 2) {
                this.v.push([0])
                that.v.push([0])
-               calc(this)
+               calc(this,that)
             } else if(this.d == 3) { calc(this,that) }
+            else {
+               sayError('invalid arguments')
+            }
             function calc(x,y) {
                x.v[0][0] = x.v[1][0]*y.v[2][0] - x.v[2][0]*y.v[1][0]
                x.v[1][0] = x.v[2][0]*y.v[0][0] - x.v[0][0]*y.v[2][0]
@@ -86,49 +103,166 @@ bob = module.exports = {
             return p
          }
       }
-      print() {
-         console.log(this.v)
+      mult(...ar) {
+         if(ar.length == 1) {
+            ar = ar[0]
+            if(this.check(ar)) {
+               for(var i in this.v) {
+                  this.v[i][0] *= that.v[i][0]
+               }
+            } else if(typeof ar == 'number') {
+               for(var i in this.v) {
+                  this.v[i][0] *= ar
+               }
+            } else {
+               sayError('invalid arguments')
+            }
+         } else if(ar.length == this.d) {
+            let valid = true
+            for(var i in ar) {
+               if(typeof ar[i] != 'number') {
+                  valid = false
+               }
+            }
+            if(valid) {
+               for(var i in this.v) {
+                  this.v[i][0] *= ar[i]
+               }
+            } else {
+               sayError('invalid arguments')
+            }
+         } else {
+            sayError('invalid arguments')
+         }
+         this.update()
+      }
+      clone() {
+         return new bob.Vector(this)
+      }
+      print(...ar) {
+         if(ar.length == 0) {
+            sayHelper('vector',this.v)
+         } else {
+            for(var i in ar) {
+               let s = ar[i].split(' ')
+               for(var j in s) {
+                  switch(s[j]) {
+                     case ' ': { break }
+                     case 'v':
+                     case 'vec':
+                     case 'vector': {
+                        sayHelper('vector',this.v)
+                        break
+                     }
+                     case 'l':
+                     case 'len':
+                     case 'length': {
+                        sayHelper('length',this.l)
+                        break
+                     }
+                     case 'd':
+                     case 'dim':
+                     case 'dimension': {
+                        sayHelper('dimensions',this.d)
+                        break
+                     }
+                     default: {
+                        sayError('invalid arguments')
+                        break
+                     }
+                  }
+               }
+            }
+         }
       }
       check(that) {
-         return that instanceof Vector && this.d == that.d
+         return that instanceof bob.Vector && this.d == that.d
       }
    }
 }
 
+const pi = 3.14159265358979323846
+const pis = 9.86960440108935861883
+const es = 7.38905609893065022723
+const pipi = 36.4621596072079117709
+const e = 2.71828182845904523536
+const re = 1.64872127070012814684
+const ree = 1.44466786100976613365
+const ii = 0.20787957635076190854
+const ie = 0.36787944117144232159
+const phi = 1.61803398874989484820
+const ipi = 0.31830988618379067153
+const pie = 22.45915771836104547342
+const epi = 23.1406926327792690057
+const gan = 2.39996322972865332223
+const chi = 0.52382257138986440645
+const rtau = 2.50662827463100050241
+const rtaue = 4.13273135412249293846
+const pih = 1.57079632679489661923
+const r2 = 1.41421356237309504880
+const r3 = 1.73205080756887729352
+const r5 = 2.23606797749978969640
+const llim = 0.66274341934918158097
+const ln2 = 0.69314718055994530941
+const r45 = 1.49534878122122054191
+
 function say(...args) {
-   for(var i in args) {
-      let s = args[i]
-      if (typeof s == 'object' && typeof s[0] == 'object') {
-         let A = s, outMsg = ''
-         for (var n in A) {
-            for (var m in A[n]) {
+   if(args.length == 2 && typeof args[0] == 'string') {
+      sayHelper(args[0],args[1])
+   } else if(typeof args == 'object' && typeof args[0] == 'object') {
+      for(var i in args) {
+         let A = args[i], outMsg = ''
+         for(var n in A) {
+            for(var m in A[n]) {
                let currLenA = (A[n][m]).toString().length
                let spcA = length(A)[m] - currLenA
                outMsg += `${string(spcA, ' ')}${A[n][m]}`
-               if (n < A.length)
+               if(n < A.length)
                   outMsg += '  '
-            }
-            outMsg += '\n\n'
+            } outMsg += '\n\n'
+         } helper(outMsg)
+      }
+   } else {
+      for(var i in args) {
+         let s = args[i]
+         helper(s)
+      }
+   }
+   function helper(e) {
+      switch(typeof e) {
+         case 'string': {
+            console.log('\x1b[34m%s\x1b[0m', e)
+            break
          }
-         console.log(outMsg)
-      } else if (typeof s == 'object') {
-         console.table(s)
-      } else {
-         let log = ''
-         if (args[i] == 0)
-            log += '\n'
-         else {
-            log += args[i]
-            if (i < args.length && args[i - 1] != 0)
-               log += ' '
+         case 'number': {
+            console.log('\x1b[36m%s\x1b[0m', e)
+            break
          }
-         console.log(log)
+         case 'boolean': {
+            console.log('\x1b[33m%s\x1b[0m', e)
+            break
+         }
+         case 'object': {
+            console.table(e)
+            break
+         }
+         case 'function': {
+            // This is a temporary fix to prevent functions to be
+            // printed to the console. Done because somewhy methods
+            // that have been added to an existing prototype print
+            // to the console, which is unwanted.
+            break
+         }
+         default: {
+            console.log('\x1b[37m%s\x1b[0m', e)
+            break
+         }
       }
    }
 }
 
 function err(s) {
-   console.error(s)
+   sayError(s)
 }
 
 function log(n, b) {
@@ -253,7 +387,7 @@ function sort(arr, s, v) {
             }
             case 'split': {
                if (!v) {
-                  console.error('no split point given')
+                  sayError('no split point given')
                   break
                }
                return arr.sort((a, b) => a <= v || b <= v ? a - b : b - a)
@@ -263,7 +397,7 @@ function sort(arr, s, v) {
             case 'split reverse':
             case 'reverse split': {
                if (!v) {
-                  console.error('no split point given')
+                  sayError('no split point given')
                   break
                }
                return arr.sort((a, b) => a >= v || b >= v ? a - b : b - a)
@@ -372,4 +506,20 @@ function transpose(m) {
       }
    }
    return n
+}
+
+function sayHelper(t,v) {
+   say('\x1b[2m'+t+': \x1b[0m\x1b[35m'+[v]+'\x1b[0m')
+}
+
+function sayError(t) {
+   say('\x1b[41m\x1b[36m'+t+'\x1b[0m')
+}
+
+Array.prototype.print = function() {
+   say('array',this.toLocaleString())
+}
+
+Array.prototype.sortify = function(...args) {
+   return sort(this,...args)
 }
