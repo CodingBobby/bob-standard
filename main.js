@@ -1,3 +1,28 @@
+const pi = 3.14159265358979323846
+const pis = 9.86960440108935861883
+const es = 7.38905609893065022723
+const pipi = 36.4621596072079117709
+const e = 2.71828182845904523536
+const re = 1.64872127070012814684
+const ree = 1.44466786100976613365
+const ii = 0.20787957635076190854
+const ie = 0.36787944117144232159
+const phi = 1.61803398874989484820
+const ipi = 0.31830988618379067153
+const pie = 22.45915771836104547342
+const epi = 23.1406926327792690057
+const gan = 2.39996322972865332223
+const chi = 0.52382257138986440645
+const rtau = 2.50662827463100050241
+const rtaue = 4.13273135412249293846
+const pih = 1.57079632679489661923
+const r2 = 1.41421356237309504880
+const r3 = 1.73205080756887729352
+const r5 = 2.23606797749978969640
+const llim = 0.66274341934918158097
+const ln2 = 0.69314718055994530941
+const r45 = 1.49534878122122054191
+
 bob = module.exports = {
    say, err, log, round, rand, leng, clone,
    pi, pis, pih, es, pipi, e, re, ree, ii,
@@ -181,31 +206,6 @@ bob = module.exports = {
    }
 }
 
-const pi = 3.14159265358979323846
-const pis = 9.86960440108935861883
-const es = 7.38905609893065022723
-const pipi = 36.4621596072079117709
-const e = 2.71828182845904523536
-const re = 1.64872127070012814684
-const ree = 1.44466786100976613365
-const ii = 0.20787957635076190854
-const ie = 0.36787944117144232159
-const phi = 1.61803398874989484820
-const ipi = 0.31830988618379067153
-const pie = 22.45915771836104547342
-const epi = 23.1406926327792690057
-const gan = 2.39996322972865332223
-const chi = 0.52382257138986440645
-const rtau = 2.50662827463100050241
-const rtaue = 4.13273135412249293846
-const pih = 1.57079632679489661923
-const r2 = 1.41421356237309504880
-const r3 = 1.73205080756887729352
-const r5 = 2.23606797749978969640
-const llim = 0.66274341934918158097
-const ln2 = 0.69314718055994530941
-const r45 = 1.49534878122122054191
-
 function say(...args) {
    if(args.length == 2 && typeof args[0] == 'string') {
       sayHelper(args[0],args[1])
@@ -280,28 +280,28 @@ function rand(f, t) {
 
 function leng(obj) {
    let l = 0
-   for (var k in obj)
-      if (obj.hasOwnProperty(k))
+   for(var k in obj)
+      if(obj.hasOwnProperty(k))
          l++
    return l
 }
 
 function clone(obj) {
-   if (null == obj || "object" != typeof obj) return obj
+   if(null == obj || "object" != typeof obj) return obj
    let copy = obj.constructor()
-   for (var attr in obj) {
-      if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr]
+   for(var attr in obj) {
+      if(obj.hasOwnProperty(attr)) copy[attr] = obj[attr]
    }
    return copy
 }
 
 function prime(x) {
-   if ([2, 3].includes(x))
+   if([2, 3].includes(x))
       return true
    let half = x % 2 != 0 ? (x - 1) / 2 : x / 2;
-   for (var i = 2; i <= half; i++) {
+   for(var i = 2; i <= half; i++) {
       let div = x / i
-      if (Math.round(div) == div)
+      if(Math.round(div) == div)
          return false
    }
    return true
@@ -309,7 +309,7 @@ function prime(x) {
 
 function palin(x) {
    let reverse = parseInt(x.toString().split("").reverse().join(""))
-   if (x == reverse)
+   if(x == reverse)
       return true
    else return false
 }
@@ -348,9 +348,12 @@ function cross(r, s, p, q) {
 }
 
 function length(mrx) {
+   // BUG: something goes wrong when calling bob.say with a matrix as the argument,
+   // last item in row is somewhy the print function itself and it gets printed to
+   // the console. Not sure why this happens, loop seems to be right.
    let mLen = []
-   for (var m = 0, len = 0, lVal = 0; m < mrx[0].length; m++) {
-      for (var n in mrx) {
+   for(var m = 0, len = 0, lVal = 0; m < mrx[0].length; m++) {
+      for(var n=0; n<mrx.length; n++) {
          let eLen = (mrx[n][m]).toString().length
          lVal = eLen ? lVal < eLen : lVal
          if (len < eLen) len = eLen
@@ -370,14 +373,14 @@ function sum(a) {
 function remove(arr, req) {
    let n = []
    arr.forEach(x => {
-      if (req.test(x)) n.push(x)
+      if(req.test(x)) n.push(x)
    })
    return n
 }
 
 function sort(arr, s, v) {
-   if (typeof arr[0] == 'number' || typeof arr[0] == 'string') {
-      if (typeof s == 'function') {
+   if(typeof arr[0] == 'number' || typeof arr[0] == 'string') {
+      if(typeof s == 'function') {
          return arr.sort((a, b) => s(a, b))
       } else {
          switch (s) {
@@ -386,7 +389,7 @@ function sort(arr, s, v) {
                return arr.sort((a, b) => b - a)
             }
             case 'split': {
-               if (!v) {
+               if(!v) {
                   sayError('no split point given')
                   break
                }
@@ -396,7 +399,7 @@ function sort(arr, s, v) {
             case 'split rev':
             case 'split reverse':
             case 'reverse split': {
-               if (!v) {
+               if(!v) {
                   sayError('no split point given')
                   break
                }
@@ -408,8 +411,8 @@ function sort(arr, s, v) {
                   down = clone(arr.sort((a, b) => b - a)),
                   nrr = []
                v = v || Math.round(arr.length / 2)
-               for (var i = 0; i < arr.length; i++) {
-                  if (i < v) {
+               for(var i = 0; i < arr.length; i++) {
+                  if(i < v) {
                      nrr.push(up[i])
                   } else {
                      nrr.push(down[i - v])
@@ -427,8 +430,8 @@ function sort(arr, s, v) {
                   down = clone(arr.sort((a, b) => b - a)),
                   nrr = []
                v = v || Math.round(arr.length / 2)
-               for (var i = 0; i < arr.length; i++) {
-                  if (i < v) {
+               for(var i = 0; i < arr.length; i++) {
+                  if(i < v) {
                      nrr.push(down[i])
                   } else {
                      nrr.push(up[i - v])
@@ -446,8 +449,8 @@ function sort(arr, s, v) {
       s -= 1
       do {
          swapp = false
-         for (var i = 0; i < n; i++) {
-            if (arr[i][s] < arr[i + 1][s]) {
+         for(var i = 0; i < n; i++) {
+            if(arr[i][s] < arr[i + 1][s]) {
                let tmp = arr[i]
                arr[i] = arr[i + 1]
                arr[i + 1] = tmp
@@ -461,7 +464,7 @@ function sort(arr, s, v) {
 
 function string(n, char) {
    let s = ``
-   for (var i = 0; i < n; i++) {
+   for(var i = 0; i < n; i++) {
       s += char
    }
    return s
@@ -470,8 +473,8 @@ function string(n, char) {
 function array(n, c) {
    let arr = [],
       x = c || 0
-   for (var i = 0; i < n; i++) {
-      if (typeof c == 'function') {
+   for(var i = 0; i < n; i++) {
+      if(typeof c == 'function') {
          x = c()
       }
       arr.push(x)
@@ -482,10 +485,10 @@ function array(n, c) {
 function matrix(x, y, n) {
    let m = [],
       c = n || 0
-   for (var j = 0; j < y; j++) {
+   for(var j = 0; j < y; j++) {
       m.push([])
-      for (var i = 0; i < x; i++) {
-         if (typeof n == 'function') {
+      for(var i = 0; i < x; i++) {
+         if(typeof n == 'function') {
             c = n()
          }
          m[j].push(c)
@@ -497,11 +500,11 @@ function matrix(x, y, n) {
 function transpose(m) {
    let n = [],
       l = m[0].length
-   for (var i = 0; i < l; i++) {
+   for(var i = 0; i < l; i++) {
       n.push([])
    }
-   for (var j in m) {
-      for (var i in m[j]) {
+   for(var j in m) {
+      for(var i in m[j]) {
          n[i].push(m[j][i])
       }
    }
