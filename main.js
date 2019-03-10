@@ -32,10 +32,10 @@ bob = module.exports = {
       prime, palin, int, square, cross
    },
    mat: {
-      det, sub, rot, length, transpose
+      det, sub, rot, length, transpose, flatten, rastor
    },
    arr: {
-      sum, remove, sort
+      sum, remove, sort, extract, remove, pick
    },
    make: {
       string, array, matrix
@@ -509,6 +509,74 @@ function transpose(m) {
       }
    }
    return n
+}
+
+function flatten(m) {
+   let items = []
+   for(var j in m) {
+      for(var i in m[j]) {
+         if(typeof m[j][i] != 'function') {
+            items.push(m[j][i])
+         }
+      }
+   }
+   return items
+}
+
+function rastor(m, w, h) {
+   if(m.length % h !== 0 || m[0].length % w !== 0) {
+      return console.log('matching error')
+   } else {
+      let boxes = []
+      let start = {
+         x: 0,
+         y: 0
+      }
+      for(var y=0; y<m.length/h; y++) {
+         boxes.push([])
+         for(var x=0; x<m[0].length/w; x++) {
+            boxes[y].push([])
+            for(var j=start.y; j<start.y+h; j++) {
+               boxes[y][x].push([])
+               for(var i=start.x; i<start.x+w; i++) {
+                  boxes[y][x][j-start.y].push(m[j][i])
+               }
+            }
+            start.x += w
+         }
+         start.y += h
+         start.x = 0
+      }
+      return boxes
+   }
+}
+
+function extract(inp, str) {
+   let rows = inp.split('\n')
+   let reg = RegExp(str)
+   let out = []
+   let tmp = []
+   for(var i in rows) {
+      let row = rows[i]
+      if(reg.test(row)) {
+         if(tmp.length !== 0) {
+            out.push(tmp)
+            tmp = []
+         }
+      } else {
+         let rowArr = row.split('')
+         tmp.push(rowArr.map(x => parseInt(x)))
+      }
+   }
+   return out
+}
+
+function remove(orig, elms) {
+   return orig.filter(el => !elms.includes(el))
+}
+
+function pick(arr) {
+   return arr[Math.floor(Math.random()*arr.length)]
 }
 
 function sayHelper(t,v) {

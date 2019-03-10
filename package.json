@@ -1,6 +1,6 @@
 {
   "name": "bob-standard",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "bobs standard library with basic stuff",
   "main": "main.js",
   "scripts": {
