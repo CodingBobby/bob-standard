@@ -2,3 +2,4 @@
 *.pdf
 *.bak*
 .DS_Store
+.idea

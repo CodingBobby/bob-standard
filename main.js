@@ -24,22 +24,29 @@ const ln2 = 0.69314718055994530941
 const r45 = 1.49534878122122054191
 
 bob = module.exports = {
-   say, err, log, round, rand, leng, clone,
+   // helpers and math
+   say, err, log, round, rand, leng, clone, gcd,
+   // constants
    pi, pis, pih, es, pipi, e, re, ree, ii,
    ie, phi, ipi, pie, gan, chi, rtau, rtaue,
-   r2, r3, r5, llim, ln2, r45,
+   r2, r3, r5, llim, ln2, r45, epi,
+   // checker functions
    check: {
       prime, palin, int, square, cross
    },
+   // functions with matrices
    mat: {
       det, sub, rot, length, transpose, flatten, rastor
    },
+   // functions with arrays
    arr: {
-      sum, remove, sort, extract, remove, pick
+      sum, test, sort, extract, remove, pick, weight
    },
+   // functions to generate stuff
    make: {
       string, array, matrix
    },
+   // classes
    Vector: class {
       constructor(...a) {
          if(a.length == 0) {
@@ -100,19 +107,19 @@ bob = module.exports = {
          this.update()
       }
       xprod(that) {
+         function calc(x,y) {
+            x.v[0][0] = x.v[1][0]*y.v[2][0] - x.v[2][0]*y.v[1][0]
+            x.v[1][0] = x.v[2][0]*y.v[0][0] - x.v[0][0]*y.v[2][0]
+            x.v[2][0] = x.v[0][0]*y.v[1][0] - x.v[1][0]*y.v[0][0]
+         }
          if(this.check(that)) {
-            if(this.d == 2) {
+            if(this.d === 2) {
                this.v.push([0])
                that.v.push([0])
                calc(this,that)
-            } else if(this.d == 3) { calc(this,that) }
+            } else if(this.d === 3) { calc(this,that) }
             else {
                sayError('invalid arguments')
-            }
-            function calc(x,y) {
-               x.v[0][0] = x.v[1][0]*y.v[2][0] - x.v[2][0]*y.v[1][0]
-               x.v[1][0] = x.v[2][0]*y.v[0][0] - x.v[0][0]*y.v[2][0]
-               x.v[2][0] = x.v[0][0]*y.v[1][0] - x.v[1][0]*y.v[0][0]
             }
          }
          this.update()
@@ -129,7 +136,7 @@ bob = module.exports = {
          }
       }
       mult(...ar) {
-         if(ar.length == 1) {
+         if(ar.length === 1) {
             ar = ar[0]
             if(this.check(ar)) {
                for(var i in this.v) {
@@ -142,7 +149,7 @@ bob = module.exports = {
             } else {
                sayError('invalid arguments')
             }
-         } else if(ar.length == this.d) {
+         } else if(ar.length === this.d) {
             let valid = true
             for(var i in ar) {
                if(typeof ar[i] != 'number') {
@@ -165,7 +172,7 @@ bob = module.exports = {
          return new bob.Vector(this)
       }
       print(...ar) {
-         if(ar.length == 0) {
+         if(ar.length === 0) {
             sayHelper('vector',this.v)
          } else {
             for(var i in ar) {
@@ -201,13 +208,13 @@ bob = module.exports = {
          }
       }
       check(that) {
-         return that instanceof bob.Vector && this.d == that.d
+         return that instanceof bob.Vector && this.d === that.d
       }
    }
 }
 
 function say(...args) {
-   if(args.length == 2 && typeof args[0] == 'string') {
+   if(args.length === 2 && typeof args[0] == 'string') {
       sayHelper(args[0],args[1])
    } else if(typeof args == 'object' && typeof args[0] == 'object') {
       for(var i in args) {
@@ -298,10 +305,10 @@ function clone(obj) {
 function prime(x) {
    if([2, 3].includes(x))
       return true
-   let half = x % 2 != 0 ? (x - 1) / 2 : x / 2;
+   let half = x % 2 !== 0 ? (x - 1) / 2 : x / 2;
    for(var i = 2; i <= half; i++) {
       let div = x / i
-      if(Math.round(div) == div)
+      if(Math.round(div) === div)
          return false
    }
    return true
@@ -309,7 +316,7 @@ function prime(x) {
 
 function palin(x) {
    let reverse = parseInt(x.toString().split("").reverse().join(""))
-   if(x == reverse)
+   if(x === reverse)
       return true
    else return false
 }
@@ -370,7 +377,7 @@ function sum(a) {
    return s
 }
 
-function remove(arr, req) {
+function test(arr, req) {
    let n = []
    arr.forEach(x => {
       if(req.test(x)) n.push(x)
@@ -569,6 +576,49 @@ function extract(inp, str) {
       }
    }
    return out
+}
+
+function weight(...args) {
+   if(args.length > 1) return console.error("too many arguments")
+
+   let pi = 0,
+      pw = 1,
+      arr = args[0],
+      witems = [],
+      citem = 0
+
+   let items = arr.map(e => e[pi]),
+      weights = arr.map(e => e[pw])
+
+   let divs = gcd(weights)
+
+   if(divs > 1) {
+      weights = weights.map(x => x/divs)
+   }
+
+   while(citem < items.length) {
+      for(var i=0; i<weights[citem]; i++) {
+         witems[witems.length] = items[citem]
+      }
+      citem++
+   }
+
+   return witems
+}
+
+function sgcd(a, b) {
+   if(!b) {
+      return a
+   }
+   return sgcd(b, a % b)
+}
+
+function gcd(arr) {
+   let result = arr[0]
+   for(var i=1; i<arr.length; i++) {
+      result = sgcd(result, arr[i])
+   }
+   return result
 }
 
 function remove(orig, elms) {
