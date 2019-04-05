@@ -40,7 +40,7 @@ bob = module.exports = {
    },
    // functions with arrays
    arr: {
-      sum, test, sort, extract, remove, pick, weight
+      sum, test, sort, extract, remove, pick, weight, swap
    },
    // functions to generate stuff
    make: {
@@ -385,6 +385,13 @@ function test(arr, req) {
    return n
 }
 
+function swap(arr, a, b) {
+   let cache = arr[a]
+   arr[a] = arr[b]
+   arr[b] = cache
+   return arr
+}
+
 function sort(arr, s, v) {
    if(typeof arr[0] == 'number' || typeof arr[0] == 'string') {
       if(typeof s == 'function') {
@@ -464,7 +471,7 @@ function sort(arr, s, v) {
                swapp = true
             }
          } n--
-      } while (swapp)
+      } while(swapp)
       return arr
    }
 }
