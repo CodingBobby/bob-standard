@@ -68,3 +68,27 @@ function extract(input, identifier) {
     return out;
 }
 exports.extract = extract;
+function size(object) {
+    var s = { keys: 0, values: 0 };
+    function find(obj) {
+        for (var item in obj) {
+            if (obj.hasOwnProperty(item)) {
+                s.keys++;
+                if (type(obj[item]) == 'Object') {
+                    find(obj[item]);
+                }
+                else {
+                    s.values++;
+                }
+            }
+        }
+    }
+    find(object);
+    return s;
+}
+exports.size = size;
+function type(item) {
+    var text = item.constructor.toString();
+    return text.match(/function (.*)\(/)[1];
+}
+exports.type = type;

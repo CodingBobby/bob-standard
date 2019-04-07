@@ -72,3 +72,30 @@ export function extract(input: string, identifier: string): any[] {
    }
    return out
 }
+
+type size<keys, values> = { keys: number, values: number}
+
+export function size(object: object): size<number, number> {
+   let s = { keys: 0, values: 0 }
+
+   function find(obj) {
+      for(let item in obj) {
+         if(obj.hasOwnProperty(item)) {
+            s.keys++
+            if(type(obj[item]) == 'Object') {
+               find(obj[item])
+            } else {
+               s.values++
+            }
+         }
+      }
+   }
+
+   find(object)
+   return s
+}
+
+export function type(item: any): string {
+	var text = item.constructor.toString()
+	return text.match(/function (.*)\(/)[1]
+}
