@@ -1,3 +1,5 @@
+import { gcd } from './calc'
+
 export function rand(from: number, to: number): number {
    return Math.random() * (to - from) + from
 }
@@ -24,4 +26,49 @@ export function swap(array: any[], indexA: number, indexB: number): any[] {
 
 export function remove(array: any[], remove: any[]): any[] {
    return array.filter(el => !remove.includes(el))
+}
+
+export function weight(array: any[][]): any[] {
+   let pi = 0,
+      pw = 1,
+      witems = [],
+      citem = 0
+
+   let items = array.map(e => e[pi]),
+      weights = array.map(e => e[pw])
+
+   let divs = gcd(weights)
+
+   if(divs > 1) {
+      weights = weights.map(x => x/divs)
+   }
+
+   while(citem < items.length) {
+      for(let i = 0; i < weights[citem]; i++) {
+         witems[witems.length] = items[citem]
+      }
+      citem++
+   }
+
+   return witems
+}
+
+export function extract(input: string, identifier: string): any[] {
+   let rows = input.split('\n')
+   let reg = RegExp(identifier)
+   let out = []
+   let tmp = []
+   for(var i in rows) {
+      let row = rows[i]
+      if(reg.test(row)) {
+         if(tmp.length !== 0) {
+            out.push(tmp)
+            tmp = []
+         }
+      } else {
+         let rowArr = row.split('')
+         tmp.push(rowArr.map(x => parseInt(x)))
+      }
+   }
+   return out
 }

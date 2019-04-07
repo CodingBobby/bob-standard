@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+var calc_1 = require("./calc");
 function rand(from, to) {
     return Math.random() * (to - from) + from;
 }
@@ -30,3 +31,40 @@ function remove(array, remove) {
     return array.filter(function (el) { return !remove.includes(el); });
 }
 exports.remove = remove;
+function weight(array) {
+    var pi = 0, pw = 1, witems = [], citem = 0;
+    var items = array.map(function (e) { return e[pi]; }), weights = array.map(function (e) { return e[pw]; });
+    var divs = calc_1.gcd(weights);
+    if (divs > 1) {
+        weights = weights.map(function (x) { return x / divs; });
+    }
+    while (citem < items.length) {
+        for (var i = 0; i < weights[citem]; i++) {
+            witems[witems.length] = items[citem];
+        }
+        citem++;
+    }
+    return witems;
+}
+exports.weight = weight;
+function extract(input, identifier) {
+    var rows = input.split('\n');
+    var reg = RegExp(identifier);
+    var out = [];
+    var tmp = [];
+    for (var i in rows) {
+        var row = rows[i];
+        if (reg.test(row)) {
+            if (tmp.length !== 0) {
+                out.push(tmp);
+                tmp = [];
+            }
+        }
+        else {
+            var rowArr = row.split('');
+            tmp.push(rowArr.map(function (x) { return parseInt(x); }));
+        }
+    }
+    return out;
+}
+exports.extract = extract;

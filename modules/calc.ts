@@ -37,3 +37,15 @@ export function arrSum(array: number[]): number {
    array.forEach(e => s += e)
    return s
 }
+
+export function gcd(array: number[]): number {
+   function sgcd(c, a) {
+      return a ? sgcd(a, c % a) : c
+   }
+
+   let b = array[0]
+   for(let c = 1; c < array.length; c++) {
+      b = sgcd(b, array[c])
+   }
+   return b
+}

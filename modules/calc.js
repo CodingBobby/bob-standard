@@ -39,3 +39,14 @@ function arrSum(array) {
     return s;
 }
 exports.arrSum = arrSum;
+function gcd(array) {
+    function sgcd(c, a) {
+        return a ? sgcd(a, c % a) : c;
+    }
+    var b = array[0];
+    for (var c = 1; c < array.length; c++) {
+        b = sgcd(b, array[c]);
+    }
+    return b;
+}
+exports.gcd = gcd;
