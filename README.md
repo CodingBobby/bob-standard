@@ -10,6 +10,12 @@ const bob = require('bob-standard')
 ```
 Thats all! Now you have access to all provided functions. Please note that this is just my personal library, I may change content without warning which could make your project thow unexpected errors. If anything strange happens, please report an [issue](https://github.com/CodingBobby/bob-standard/issues) or contact me via [email](mailto:conatct@codingbobby.xyz).
 
+## Versions
+
+**Stay with version 0.1.9 as long as 0.2.1 is not out yet!**
+
+The latest version 0.2.0 has less functionality than 0.1.9.
+
 ## Example usage
 
 Here are a few examples filled with methods from this library. For more details on each method, please check out the [documentation](https://github.com/CodingBobby/bob-standard/blob/master/DOCS.md).
