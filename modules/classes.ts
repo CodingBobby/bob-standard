@@ -12,16 +12,24 @@ export class Vector2D {
       return new Vector3D(this.x, this.y, z)
    }
 
-   public times(factor: number, newInstance?: 1): void | Vector2D {
-      if(newInstance) {
-         return new Vector2D(this.x * factor, this.y * factor)
+   public times(factor: number | Vector2D, newInstance?: 1): void | Vector2D {
+      let fx: number, fy: number
+      if(factor instanceof Vector2D) {
+         fx = factor.x
+         fy = factor.y
       } else {
-         this.x *= factor
-         this.y *= factor
+         fx = factor
+         fy = factor
+      }
+      if(newInstance) {
+         return new Vector2D(this.x * fx, this.y * fy)
+      } else {
+         this.x *= fx
+         this.y *= fy
       }
    }
 
-   public plus(other: Vector2D, newInstance?: 1): void | Vector2D {
+   public add(other: Vector2D, newInstance?: 1): void | Vector2D {
       if(newInstance) {
          return new Vector2D(this.x + other.x, this.y + other.y)
       } else {
@@ -30,7 +38,7 @@ export class Vector2D {
       }
    }
 
-   public minus(other: Vector2D, newInstance?: 1): void | Vector2D {
+   public sub(other: Vector2D, newInstance?: 1): void | Vector2D {
       if(newInstance) {
          return new Vector2D(this.x - other.x, this.y - other.y)
       } else {
@@ -43,9 +51,13 @@ export class Vector2D {
       return this.x * other.x + this.y * other.y
    }
 
-   public cross(other: Vector2D): Vector3D {
-      let v1 = this.expand()
-      let v2 = other.expand()
+   public cross(other: Vector2D | Vector3D): Vector3D {
+      let v1 = this.expand(), v2: any
+      if(other instanceof Vector2D) {
+         v2 = other.expand()
+      } else {
+         v2 = other
+      }
 
       return v1.cross(v2, 1)
    }
@@ -72,17 +84,30 @@ export class Vector3D {
       return new Vector3D(this.x, this.y, this.z)
    }
 
-   public times(factor: number, newInstance?: 1): void | Vector3D {
-      if(newInstance) {
-         return new Vector3D(this.x * factor, this.y * factor, this.z * factor)
+   public times(factor: number | Vector3D, newInstance?: 1): void | Vector3D {
+      let fx: number, fy: number, fz: number
+      if(factor instanceof Vector3D) {
+         fx = factor.x
+         fy = factor.y
+         fz = factor.z
       } else {
-         this.x *= factor
-         this.y *= factor
-         this.z *= factor
+         fx = factor
+         fy = factor
+         fz = factor
+      }
+      if(newInstance) {
+         return new Vector3D(this.x * fx, this.y * fy, this.z * fz)
+      } else {
+         this.x *= fx
+         this.y *= fy
+         this.z *= fz
       }
    }
 
-   public plus(other: Vector3D, newInstance?: 1): void | Vector3D {
+   public add(other: Vector2D | Vector3D, newInstance?: 1): void | Vector3D {
+      if(other instanceof Vector2D) {
+         other = other.expand()
+      }
       if(newInstance) {
          return new Vector3D(this.x + other.x, this.y + other.y, this.z + other.z)
       } else {
@@ -92,7 +117,7 @@ export class Vector3D {
       }
    }
 
-   public minus(other: Vector3D, newInstance?: 1): void | Vector3D {
+   public sub(other: Vector3D, newInstance?: 1): void | Vector3D {
       if(newInstance) {
          return new Vector3D(this.x - other.x, this.y - other.y, this.z - other.z)
       } else {

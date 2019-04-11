@@ -10,89 +10,41 @@ const bob = require('bob-standard')
 ```
 Thats all! Now you have access to all provided functions. Please note that this is just my personal library, I may change content without warning which could make your project thow unexpected errors. If anything strange happens, please report an [issue](https://github.com/CodingBobby/bob-standard/issues) or contact me via [email](mailto:conatct@codingbobby.xyz).
 
-## Versions
-
-**Stay with version 0.1.9 as long as 0.2.1 is not out yet!**
-
-The latest version 0.2.0 has less functionality than 0.1.9.
-
 ## Example usage
 
-Here are a few examples filled with methods from this library. For more details on each method, please check out the [documentation](https://github.com/CodingBobby/bob-standard/blob/master/DOCS.md).
+Here are a few examples using methods from this library. For details on each available method, please check out the [documentation](https://github.com/CodingBobby/bob-standard/blob/master/DOCS.md).
 
-### Some math
-
-```js
-// Logarithm of 8 in base 2
-let a = bob.log(8, 2) // 3
-```
-```js
-// Round 10/a to 3 digits
-let b = bob.round(10/a, 3) // 3.333
-```
-
-### Helpers
+### Example 1
 
 ```js
-// This is just a simple array
-let foo = [1,2,3]
-
-// Here we create a hard copy of foo
-let bar = bob.clone(foo)
-
-// Now we can modify bar without affecting foo
-bar.push(4)
-```
-```js
-// This is just a simple object
-let foo = {
-    a: 1,
-    b: 2,
-    c: 3
+// a nested object
+let obj = {
+   foo: {
+      baz: {
+         pi: Math.PI
+      }
+   },
+   bar: {
+      bat: 'bathtub'
+   }
 }
 
-// Here we find out how many items foo holds
-let items = bob.length(foo)
+// gives you the amount of values spreaded
+// through the object
+bob.size(obj).values // 2
+
+// amount of keys, excluding 'this'
+bob.size(obj).keys // 5
 ```
 
-### Matrix creator
+### Example 2
 
 ```js
-// This creates a matrix with a width of 4 and
-// a height of 6 items. Each item will a zero.
-let matrix = bob.make.matrix(4, 6, 0)
+// creating two vectors (read more in the DOCS)
+let v1 = new bob.Vector2D(2, 5)
+let v2 = new bob.Vector2D(6, 1)
 
-// Print the created matrix to the console.
-bob.say(matrix)
-```
-
-### Array sorter
-
-```js
-// Here we create an array with 100 elements,
-// of which each will be a random integer between 0 and 100.
-let array = bob.make.array(100, () => {
-    return bob.round(bob.rand(0, 100))
-})
-
-// This sorts the array in an ascending order.
-array = bob.arr.sort(array)
-
-// This sorts the array in reversed order (descending).
-array = bob.arr.sort(array, 'rev')
-
-// This sorts the array with a split at the center.
-// In our case, the resulting array will start with an ascending
-// order and when reaching the middle, the sorting will switch
-// to a descending order.
-array = bob.arr.sort(array, 'split')
-
-// You can also reverse this:
-array = bob.arr.sort(array, 'split rev')
-
-// Or define the position it should split at:
-array = bob.arr.sort(array, 'split pos', 35)
-
-// And combine both:
-array = bob.arr.sort(array, 'split rev pos', 35)
+// automatically 'upgrades' to 3D when applying the
+// cross product on 2D vectors
+v1.cross(v2) instanceof Vector3D // true
 ```

@@ -27,15 +27,24 @@ var Vector2D = /** @class */ (function () {
         return new Vector3D(this.x, this.y, z);
     };
     Vector2D.prototype.times = function (factor, newInstance) {
-        if (newInstance) {
-            return new Vector2D(this.x * factor, this.y * factor);
+        var fx, fy;
+        if (factor instanceof Vector2D) {
+            fx = factor.x;
+            fy = factor.y;
         }
         else {
-            this.x *= factor;
-            this.y *= factor;
+            fx = factor;
+            fy = factor;
+        }
+        if (newInstance) {
+            return new Vector2D(this.x * fx, this.y * fy);
+        }
+        else {
+            this.x *= fx;
+            this.y *= fy;
         }
     };
-    Vector2D.prototype.plus = function (other, newInstance) {
+    Vector2D.prototype.add = function (other, newInstance) {
         if (newInstance) {
             return new Vector2D(this.x + other.x, this.y + other.y);
         }
@@ -44,7 +53,7 @@ var Vector2D = /** @class */ (function () {
             this.y += other.y;
         }
     };
-    Vector2D.prototype.minus = function (other, newInstance) {
+    Vector2D.prototype.sub = function (other, newInstance) {
         if (newInstance) {
             return new Vector2D(this.x - other.x, this.y - other.y);
         }
@@ -57,8 +66,13 @@ var Vector2D = /** @class */ (function () {
         return this.x * other.x + this.y * other.y;
     };
     Vector2D.prototype.cross = function (other) {
-        var v1 = this.expand();
-        var v2 = other.expand();
+        var v1 = this.expand(), v2;
+        if (other instanceof Vector2D) {
+            v2 = other.expand();
+        }
+        else {
+            v2 = other;
+        }
         return v1.cross(v2, 1);
     };
     Vector2D.prototype.mag = function () {
@@ -87,16 +101,30 @@ var Vector3D = /** @class */ (function () {
         return new Vector3D(this.x, this.y, this.z);
     };
     Vector3D.prototype.times = function (factor, newInstance) {
-        if (newInstance) {
-            return new Vector3D(this.x * factor, this.y * factor, this.z * factor);
+        var fx, fy, fz;
+        if (factor instanceof Vector3D) {
+            fx = factor.x;
+            fy = factor.y;
+            fz = factor.z;
         }
         else {
-            this.x *= factor;
-            this.y *= factor;
-            this.z *= factor;
+            fx = factor;
+            fy = factor;
+            fz = factor;
+        }
+        if (newInstance) {
+            return new Vector3D(this.x * fx, this.y * fy, this.z * fz);
+        }
+        else {
+            this.x *= fx;
+            this.y *= fy;
+            this.z *= fz;
         }
     };
-    Vector3D.prototype.plus = function (other, newInstance) {
+    Vector3D.prototype.add = function (other, newInstance) {
+        if (other instanceof Vector2D) {
+            other = other.expand();
+        }
         if (newInstance) {
             return new Vector3D(this.x + other.x, this.y + other.y, this.z + other.z);
         }
@@ -106,7 +134,7 @@ var Vector3D = /** @class */ (function () {
             this.z += other.z;
         }
     };
-    Vector3D.prototype.minus = function (other, newInstance) {
+    Vector3D.prototype.sub = function (other, newInstance) {
         if (newInstance) {
             return new Vector3D(this.x - other.x, this.y - other.y, this.z - other.z);
         }
