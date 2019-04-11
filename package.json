@@ -2,7 +2,7 @@
   "name": "bob-standard",
   "version": "0.2.0",
   "description": "bobs standard library with basic stuff",
-  "main": "bob-standard.min.js",
+  "main": "bob-standard.js",
   "author": {
     "name": "CodingBobby",
     "email": "contact@codingbobby.xyz",

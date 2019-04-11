@@ -8,3 +8,4 @@ __export(require("./modules/creators"));
 __export(require("./modules/checks"));
 __export(require("./modules/matrix"));
 __export(require("./modules/helpers"));
+__export(require("./modules/classes"));
