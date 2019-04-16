@@ -1,5 +1,4 @@
 "use strict";
-// VECTORS
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -14,6 +13,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
+var calc_1 = require("./calc");
+// VECTORS
 var Vector2D = /** @class */ (function () {
     function Vector2D(x, y) {
         this.x = x;
@@ -87,6 +88,20 @@ var Vector2D = /** @class */ (function () {
         else {
             this.times(div);
         }
+    };
+    Vector2D.prototype.det = function (other) {
+        var a = this.x * other.y;
+        var b = this.y * other.x;
+        return a - b;
+    };
+    Vector2D.prototype.rotation = function (other_first, other_second) {
+        var p = other_first, q = other_second;
+        p.sub(this);
+        q.sub(this);
+        return p.det(q);
+    };
+    Vector2D.prototype.line = function (other) {
+        return new Line2D(this, other);
     };
     return Vector2D;
 }());
@@ -172,6 +187,21 @@ var Vector3D = /** @class */ (function () {
             this.times(div);
         }
     };
+    Vector3D.prototype.det = function (other_first, other_second) {
+        var v1a = new Vector2D(other_first.y, other_first.z);
+        var v1b = new Vector2D(other_first.x, other_first.z);
+        var v1c = new Vector2D(other_first.x, other_first.y);
+        var v2a = new Vector2D(other_second.y, other_second.z);
+        var v2b = new Vector2D(other_second.x, other_second.z);
+        var v2c = new Vector2D(other_second.x, other_second.y);
+        var d = v1a.det(v2a);
+        var e = v1b.det(v2b);
+        var f = v1c.det(v2c);
+        return this.x * d - this.y * e + this.z * f;
+    };
+    Vector3D.prototype.line = function (other) {
+        return new Line3D(this, other);
+    };
     return Vector3D;
 }());
 exports.Vector3D = Vector3D;
@@ -225,3 +255,109 @@ var Angle3D = /** @class */ (function (_super) {
     return Angle3D;
 }(Angle));
 exports.Angle3D = Angle3D;
+// LINES
+var Line2D = /** @class */ (function () {
+    function Line2D(from, to) {
+        this.from = from;
+        this.to = to;
+        this.dir = to.sub(from, 1);
+        this.pos = from.clone();
+    }
+    Line2D.prototype.doCross = function (other) {
+        return true
+            ? this.from.rotation(other.from, other.to)
+                * this.to.rotation(other.from, other.to) < 0
+            : false;
+    };
+    return Line2D;
+}());
+exports.Line2D = Line2D;
+var Line3D = /** @class */ (function () {
+    function Line3D(from, to) {
+        this.from = from;
+        this.to = to;
+        this.dir = to.sub(from, 1);
+        this.pos = from.clone();
+    }
+    return Line3D;
+}());
+exports.Line3D = Line3D;
+// MATRICES
+var Matrix = /** @class */ (function () {
+    function Matrix(vectors) {
+        if (!this.confirm(vectors)) {
+            console.error('wrong dimensions');
+            return;
+        }
+        var matrix = this.createHelper(vectors.length, vectors[0].length);
+        for (var j in matrix) {
+            for (var i in matrix[j]) {
+                matrix[j][i] = vectors[i][j];
+            }
+        }
+        this.columns = matrix;
+        this.rows = this.transpose();
+    }
+    Matrix.prototype.confirm = function (arrays) {
+        var lengths = [];
+        for (var i in arrays) {
+            lengths.push(arrays[i].length);
+        }
+        return calc_1.devi(lengths) === 0;
+    };
+    Matrix.prototype.createHelper = function (width, height, item) {
+        var matrix = [];
+        for (var j = 0; j < height; j++) {
+            matrix.push([]);
+            for (var i = 0; i < width; i++) {
+                var n = 0;
+                if (typeof item == 'function') {
+                    n = item();
+                }
+                else if (typeof item == 'number') {
+                    n = item;
+                }
+                matrix[j].push(n);
+            }
+        }
+        return matrix;
+    };
+    Matrix.create = function (width, height, item) {
+        item = item || 0;
+        function helper(width, height, item) {
+            var matrix = [];
+            for (var j = 0; j < height; j++) {
+                matrix.push([]);
+                for (var i = 0; i < width; i++) {
+                    var n = 0;
+                    if (typeof item == 'function') {
+                        n = item();
+                    }
+                    else if (typeof item == 'number') {
+                        n = item;
+                    }
+                    matrix[j].push(n);
+                }
+            }
+            return matrix;
+        }
+        var tmp = new Matrix(helper(width, height, item));
+        return new Matrix(tmp.transpose());
+    };
+    Matrix.prototype.transpose = function () {
+        var n = [];
+        var m = this.columns;
+        var l = m[0].length;
+        for (var i = 0; i < l; i++) {
+            n.push([]);
+        }
+        for (var j in m) {
+            for (var i in m[j]) {
+                n[i].push(m[j][i]);
+            }
+        }
+        return n;
+    };
+    return Matrix;
+}());
+exports.Matrix = Matrix;

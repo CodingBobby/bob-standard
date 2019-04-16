@@ -1,6 +1,5 @@
 export * from './modules/calc'
 export * from './modules/creators'
 export * from './modules/checks'
-export * from './modules/matrix'
 export * from './modules/helpers'
 export * from './modules/classes'

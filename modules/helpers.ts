@@ -1,4 +1,4 @@
-import { gcd } from './calc'
+import { gcd, smti } from './calc'
 
 export function rand(from: number, to: number): number {
    return Math.random() * (to - from) + from
@@ -28,17 +28,25 @@ export function remove(array: any[], remove: any[]): any[] {
    return array.filter(el => !remove.includes(el))
 }
 
-export function weight(array: any[][]): any[] {
-   let pi = 0,
-      pw = 1,
-      witems = [],
+export function weight(items: any[], weights: number[]): any[] {
+   if(items.length !== weights.length) {
+      console.error('arrays do not match!')
+   }
+   let witems = [],
       citem = 0
 
-   let items = array.map(e => e[pi]),
-      weights = array.map(e => e[pw])
+   // now we need to push the weights to whole numbers, because we can't
+   // put half items into an array
+   for(let i in weights) {
+      let multiple = smti(weights[i])
+      for(let j in weights) {
+         weights[j] *= multiple
+      }
+   }
 
+   // if weights could be simplified because common divisors exist,
+   // the 'divs' variable would be greater than '1' (which is always the case)
    let divs = gcd(weights)
-
    if(divs > 1) {
       weights = weights.map(x => x/divs)
    }
@@ -98,4 +106,58 @@ export function size(object: object): size<number, number> {
 export function type(item: any): string {
 	var text = item.constructor.toString()
 	return text.match(/function (.*)\(/)[1]
+}
+
+export function say(...args) {
+   if(args.length === 2 && typeof args[0] == 'string') {
+      sayHelper(args[0],args[1])
+   } else {
+      for(var i in args) {
+         let s = args[i]
+         helper(s)
+      }
+   }
+   function helper(e) {
+      switch(typeof e) {
+         case 'string': {
+            console.log('\x1b[34m%s\x1b[0m', e)
+            break
+         }
+         case 'number': {
+            console.log('\x1b[36m%s\x1b[0m', e)
+            break
+         }
+         case 'boolean': {
+            console.log('\x1b[33m%s\x1b[0m', e)
+            break
+         }
+         case 'object': {
+            console.table(e)
+            break
+         }
+         case 'function': {
+            // This is a temporary fix to prevent functions to be
+            // printed to the console. Done because somewhy methods
+            // that have been added to an existing prototype print
+            // to the console, which is unwanted.
+            break
+         }
+         default: {
+            console.log('\x1b[37m%s\x1b[0m', e)
+            break
+         }
+      }
+   }
+}
+
+export function err(msg: string) {
+   sayError(msg)
+}
+
+function sayHelper(t,v) {
+   say('\x1b[2m'+t+': \x1b[0m\x1b[35m'+[v]+'\x1b[0m')
+}
+
+function sayError(t) {
+   say('\x1b[41m\x1b[36m'+t+'\x1b[0m')
 }

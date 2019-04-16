@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+var checks_1 = require("./checks");
 exports.pi = 3.14159265358979323846;
 exports.pis = 9.86960440108935861883;
 exports.es = 7.38905609893065022723;
@@ -33,20 +34,75 @@ function round(x, digits) {
     return Number(x.toFixed(digits));
 }
 exports.round = round;
-function arrSum(array) {
+function sum(items) {
     var s = 0;
-    array.forEach(function (e) { return s += e; });
+    items.forEach(function (e) { return s += e; });
     return s;
 }
-exports.arrSum = arrSum;
-function gcd(array) {
+exports.sum = sum;
+function gcd(items) {
     function sgcd(c, a) {
         return a ? sgcd(a, c % a) : c;
     }
-    var b = array[0];
-    for (var c = 1; c < array.length; c++) {
-        b = sgcd(b, array[c]);
+    var b = items[0];
+    for (var c = 1; c < items.length; c++) {
+        b = sgcd(b, items[c]);
     }
     return b;
 }
 exports.gcd = gcd;
+// smallest multiple to int
+function smti(x) {
+    if (checks_1.isInt(x)) {
+        return 1;
+    }
+    var done = false;
+    var s = 0;
+    while (!done) {
+        s++;
+        if (x >= 1) {
+            if (checks_1.isInt(x * s)) {
+                done = true;
+            }
+        }
+        else {
+            if (checks_1.isInt(s / x)) {
+                done = true;
+            }
+        }
+    }
+    if (x >= 1) {
+        return s;
+    }
+    else {
+        return s / x;
+    }
+}
+exports.smti = smti;
+function mean(items) {
+    return sum(items) / items.length;
+}
+exports.mean = mean;
+function medi(items) {
+    var a = min(items);
+    var b = max(items);
+    return (a + b) / 2;
+}
+exports.medi = medi;
+function devi(items) {
+    var m = mean(items);
+    var a = m - min(items);
+    var b = max(items) - m;
+    return a > b ? a : b;
+}
+exports.devi = devi;
+function min(items) {
+    var m = items[0];
+    items.forEach(function (e) { return e < m ? m = e : m; });
+    return m;
+}
+function max(items) {
+    var m = items[0];
+    items.forEach(function (e) { return e > m ? m = e : m; });
+    return m;
+}

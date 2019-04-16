@@ -13,8 +13,8 @@ function isPrime(x) {
 }
 exports.isPrime = isPrime;
 function isPalin(x) {
-    var reverse = parseInt(x.toString().split("").reverse().join(""));
-    if (x === reverse)
+    var reverse = Number(x.toString().split('').reverse().join(''));
+    if (x == reverse) // do not change to triple '='!
         return true;
     else
         return false;

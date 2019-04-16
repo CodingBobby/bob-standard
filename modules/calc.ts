@@ -1,3 +1,5 @@
+import { isInt } from './checks'
+
 export const pi: number    = 3.14159265358979323846
 export const pis: number   = 9.86960440108935861883
 export const es: number    = 7.38905609893065022723
@@ -32,20 +34,77 @@ export function round(x: number, digits?: number): number {
    return Number(x.toFixed(digits))
 }
 
-export function arrSum(array: number[]): number {
-   let s = 0
-   array.forEach(e => s += e)
+export function sum(items: number[]): number {
+   let s: number = 0
+   items.forEach(e => s += e)
    return s
 }
 
-export function gcd(array: number[]): number {
+export function gcd(items: number[]): number {
    function sgcd(c, a) {
       return a ? sgcd(a, c % a) : c
    }
 
-   let b = array[0]
-   for(let c = 1; c < array.length; c++) {
-      b = sgcd(b, array[c])
+   let b: number = items[0]
+   for(let c = 1; c < items.length; c++) {
+      b = sgcd(b, items[c])
    }
    return b
+}
+
+// smallest multiple to int
+export function smti(x: number): number {
+   if(isInt(x)) { return 1 }
+   
+   let done: boolean = false
+   let s: number = 0
+   
+   while(!done) {
+      s++
+      if(x >= 1) {
+         if(isInt(x * s)) {
+            done = true
+         }
+      } else {
+         if(isInt(s / x)) {
+            done = true
+         }
+      }
+   }
+   if(x >= 1) {
+      return s
+   } else {
+      return s / x
+   }
+}
+
+export function mean(items: number[]): number {
+   return sum(items) / items.length
+}
+
+export function medi(items: number[]): number {
+   let a: number = min(items)
+   let b: number = max(items)
+
+   return (a + b)/2
+}
+
+export function devi(items: number[]): number {
+   let m: number = mean(items)
+   let a: number = m - min(items)
+   let b: number = max(items) - m
+
+   return a > b ? a : b
+}
+
+function min(items: number[]): number {
+   let m: number = items[0]
+   items.forEach(e => e < m ? m = e : m)
+   return m
+}
+
+function max(items: number[]): number {
+   let m: number = items[0]
+   items.forEach(e => e > m ? m = e : m)
+   return m
 }

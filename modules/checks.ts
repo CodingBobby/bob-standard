@@ -10,9 +10,9 @@ export function isPrime(x: number): boolean {
    return true
 }
 
-export function isPalin(x: number): boolean {
-   let reverse = parseInt(x.toString().split("").reverse().join(""))
-   if(x === reverse)
+export function isPalin(x: number | string): boolean {
+   let reverse = Number(x.toString().split('').reverse().join(''))
+   if(x == reverse) // do not change to triple '='!
       return true
    else return false
 }

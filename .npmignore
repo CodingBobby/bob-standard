@@ -3,3 +3,5 @@
 *.bak*
 .DS_Store
 .idea
+*.old.*
+*.p.*

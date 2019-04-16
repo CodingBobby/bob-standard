@@ -1,3 +1,5 @@
+import { devi } from './calc'
+
 // VECTORS
 
 export class Vector2D {
@@ -12,7 +14,7 @@ export class Vector2D {
       return new Vector3D(this.x, this.y, z)
    }
 
-   public times(factor: number | Vector2D, newInstance?: 1): void | Vector2D {
+   public times(factor: number | Vector2D, newInstance?: 1): Vector2D {
       let fx: number, fy: number
       if(factor instanceof Vector2D) {
          fx = factor.x
@@ -29,7 +31,7 @@ export class Vector2D {
       }
    }
 
-   public add(other: Vector2D, newInstance?: 1): void | Vector2D {
+   public add(other: Vector2D, newInstance?: 1): Vector2D {
       if(newInstance) {
          return new Vector2D(this.x + other.x, this.y + other.y)
       } else {
@@ -38,7 +40,7 @@ export class Vector2D {
       }
    }
 
-   public sub(other: Vector2D, newInstance?: 1): void | Vector2D {
+   public sub(other: Vector2D, newInstance?: 1): Vector2D {
       if(newInstance) {
          return new Vector2D(this.x - other.x, this.y - other.y)
       } else {
@@ -66,7 +68,7 @@ export class Vector2D {
       return Math.sqrt(this.x * this.x + this.y * this.y)
    }
 
-   public norm(newInstance?: 1): void | Vector2D {
+   public norm(newInstance?: 1): Vector2D {
       let mag = this.mag()
       let div = (mag === 0) ? Infinity : 1 / mag
       if(newInstance) {
@@ -74,6 +76,23 @@ export class Vector2D {
       } else {
          this.times(div)
       }
+   }
+
+   public det(other: Vector2D): number {
+      let a = this.x * other.y
+      let b = this.y * other.x
+      return a - b
+   }
+
+   public rotation(other_first: Vector2D, other_second: Vector2D): number {
+      let p = other_first, q = other_second
+      p.sub(this)
+      q.sub(this)
+      return p.det(q)
+   }
+
+   public line(other: Vector2D): Line2D {
+      return new Line2D(this, other)
    }
 }
 
@@ -84,7 +103,7 @@ export class Vector3D {
       return new Vector3D(this.x, this.y, this.z)
    }
 
-   public times(factor: number | Vector3D, newInstance?: 1): void | Vector3D {
+   public times(factor: number | Vector3D, newInstance?: 1): Vector3D {
       let fx: number, fy: number, fz: number
       if(factor instanceof Vector3D) {
          fx = factor.x
@@ -104,7 +123,7 @@ export class Vector3D {
       }
    }
 
-   public add(other: Vector2D | Vector3D, newInstance?: 1): void | Vector3D {
+   public add(other: Vector2D | Vector3D, newInstance?: 1): Vector3D {
       if(other instanceof Vector2D) {
          other = other.expand()
       }
@@ -117,7 +136,7 @@ export class Vector3D {
       }
    }
 
-   public sub(other: Vector3D, newInstance?: 1): void | Vector3D {
+   public sub(other: Vector3D, newInstance?: 1): Vector3D {
       if(newInstance) {
          return new Vector3D(this.x - other.x, this.y - other.y, this.z - other.z)
       } else {
@@ -151,7 +170,7 @@ export class Vector3D {
       return Math.cbrt(this.x * this.x + this.y * this.y + this.z * this.z)
    }
 
-   public norm(newInstance?: 1): void | Vector3D {
+   public norm(newInstance?: 1): Vector3D {
       let mag = this.mag()
       let div = (mag === 0) ? Infinity : 1 / mag
       if(newInstance) {
@@ -159,6 +178,25 @@ export class Vector3D {
       } else {
          this.times(div)
       }
+   }
+
+   public det(other_first: Vector3D, other_second: Vector3D): number {
+      let v1a = new Vector2D(other_first.y, other_first.z)
+      let v1b = new Vector2D(other_first.x, other_first.z)
+      let v1c = new Vector2D(other_first.x, other_first.y)
+
+      let v2a = new Vector2D(other_second.y, other_second.z)
+      let v2b = new Vector2D(other_second.x, other_second.z)
+      let v2c = new Vector2D(other_second.x, other_second.y)
+
+      let d = v1a.det(v2a)
+      let e = v1b.det(v2b)
+      let f = v1c.det(v2c)
+      return this.x * d - this.y * e + this.z * f
+   }
+
+   public line(other: Vector3D): Line3D {
+      return new Line3D(this, other)
    }
 }
 
@@ -209,5 +247,120 @@ export class Angle3D extends Angle {
          this.b = this.toDRG(y)
          this.c = this.toDRG(z)
       }
+   }
+}
+
+// LINES
+
+export class Line2D {
+   public dir: Vector2D
+   public pos: Vector2D
+
+   constructor(public from: Vector2D, public to: Vector2D) {
+      this.dir = to.sub(from, 1)
+      this.pos = from.clone()
+   }
+
+   public doCross(other: Line2D): boolean {
+      return true
+         ? this.from.rotation(other.from, other.to)
+            * this.to.rotation(other.from, other.to) < 0
+         : false
+   }
+}
+
+export class Line3D {
+   public dir: Vector3D
+   public pos: Vector3D
+
+   constructor(public from: Vector3D, public to: Vector3D) {
+      this.dir = to.sub(from, 1)
+      this.pos = from.clone()
+   }
+}
+
+// MATRICES
+
+export class Matrix {
+   public columns: number[][]
+   public rows: number[][]
+
+   constructor(vectors: number[][]) {
+      if(!this.confirm(vectors)) {
+         console.error('wrong dimensions')
+         return
+      }
+
+      let matrix = this.createHelper(vectors.length, vectors[0].length)
+      for(let j in matrix) {
+         for(let i in matrix[j]) {
+            matrix[j][i] = vectors[i][j]
+         }
+      }
+      this.columns = matrix
+      this.rows = this.transpose()
+   }
+
+   private confirm(arrays) {
+      let lengths: number[] = []
+      for(let i in arrays) {
+         lengths.push(arrays[i].length)
+      }
+      return devi(lengths) === 0
+   }
+
+   private createHelper(width: number, height: number, item?: number | Function): number[][] {
+      let matrix: number[][] = []
+      for(let j = 0; j < height; j++) {
+         matrix.push([])
+         for(let i = 0; i < width; i++) {
+            let n: number = 0
+            if(typeof item == 'function') {
+               n = item()
+            } else if(typeof item == 'number') {
+               n = item
+            }
+            matrix[j].push(n)
+         }
+      }
+      return matrix
+   }
+
+   static create(width: number, height: number, item?: number | Function): Matrix {
+      item = item || 0
+      function helper(width: number, height: number, item?: number | Function): number[][] {
+         let matrix: number[][] = []
+         for(let j = 0; j < height; j++) {
+            matrix.push([])
+            for(let i = 0; i < width; i++) {
+               let n: number = 0
+               if(typeof item == 'function') {
+                  n = item()
+               } else if(typeof item == 'number') {
+                  n = item
+               }
+               matrix[j].push(n)
+            }
+         }
+         return matrix
+      }
+      let tmp = new Matrix(helper(width, height, item))
+      return new Matrix(tmp.transpose())
+   }
+
+   public transpose() {
+      let n: number[][] = []
+      let m: number[][] = this.columns
+      let l: number = m[0].length
+
+      for(let i = 0; i < l; i++) {
+         n.push([])
+      }
+      for(let j in m) {
+         for(let i in m[j]) {
+            n[i].push(m[j][i])
+         }
+      }
+      return n
    }
 }
