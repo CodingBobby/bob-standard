@@ -363,4 +363,29 @@ export class Matrix {
       }
       return n
    }
+
+   public getfree() {
+      let free = {
+         columns: [],
+         rows: []
+      }
+      function helper(m) {
+         let frees = []
+         for(let j=0; j<m.length; j++) {
+            let isFree = true
+            for(let i=0; i<m[j].length; i++) {
+               if(m[j][i] !== 0) isFree = false
+            }
+            if(isFree) {
+               frees.push(j)
+            }
+         }
+         return frees
+      }
+
+      free.columns = helper(this.columns)
+      free.rows = helper(this.rows)
+      
+      return free
+   }
 }

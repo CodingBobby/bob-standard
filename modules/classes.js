@@ -358,6 +358,29 @@ var Matrix = /** @class */ (function () {
         }
         return n;
     };
+    Matrix.prototype.getfree = function () {
+        var free = {
+            columns: [],
+            rows: []
+        };
+        function helper(m) {
+            var frees = [];
+            for (var j = 0; j < m.length; j++) {
+                var isFree = true;
+                for (var i = 0; i < m[j].length; i++) {
+                    if (m[j][i] !== 0)
+                        isFree = false;
+                }
+                if (isFree) {
+                    frees.push(j);
+                }
+            }
+            return frees;
+        }
+        free.columns = helper(this.columns);
+        free.rows = helper(this.rows);
+        return free;
+    };
     return Matrix;
 }());
 exports.Matrix = Matrix;

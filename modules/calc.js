@@ -101,8 +101,10 @@ function min(items) {
     items.forEach(function (e) { return e < m ? m = e : m; });
     return m;
 }
+exports.min = min;
 function max(items) {
     var m = items[0];
     items.forEach(function (e) { return e > m ? m = e : m; });
     return m;
 }
+exports.max = max;

@@ -97,13 +97,13 @@ export function devi(items: number[]): number {
    return a > b ? a : b
 }
 
-function min(items: number[]): number {
+export function min(items: number[]): number {
    let m: number = items[0]
    items.forEach(e => e < m ? m = e : m)
    return m
 }
 
-function max(items: number[]): number {
+export function max(items: number[]): number {
    let m: number = items[0]
    items.forEach(e => e > m ? m = e : m)
    return m
