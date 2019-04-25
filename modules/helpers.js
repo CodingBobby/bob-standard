@@ -227,6 +227,8 @@ function printArray(input, name) {
         function helper(e) {
             for (var i in e) {
                 if (type(e[i]) == 'Array') {
+                    // to distinguish between arrays following each other on the same level, we introduce dummy nulls
+                    itemArray.push(null);
                     helper(e[i]);
                 }
                 else {
@@ -240,6 +242,34 @@ function printArray(input, name) {
     getItems(input);
     // their deepness / level
     mapDeepness(input);
+    // its ia also important to know where the items are linked, by that I mean the level of the array our current item is inside which is always one below the actual level
+    var anchorArray = [];
+    for (var i in deepArray) {
+        anchorArray.push(deepArray[i] - 1);
+    }
+    // to have the deepArray containing the dummies as well, we recreate it and check for available dummies
+    var newDeep = [];
+    var t = 0; // another parallel counter for below
+    for (var i in itemArray) {
+        if (itemArray[i] === null) {
+            newDeep.push(anchorArray[t]);
+        }
+        else {
+            newDeep.push(deepArray[t++]);
+        }
+    }
+    // debugging
+    // console.log('input:')
+    // console.log(input)
+    // console.log('itemArray:')
+    // console.log(itemArray)
+    // console.log('deepArray:')
+    // console.log(deepArray)
+    // console.log('anchorArray:')
+    // console.log(anchorArray)
+    // console.log('newDeep:')
+    // console.log(newDeep)
+    deepArray = clone(newDeep);
     // we have to get the level changes and sublevels as well
     var itemLevels = [];
     for (var i in deepArray) {
@@ -279,9 +309,9 @@ function printArray(input, name) {
             sub: sub
         });
     }
+    // console.log(itemLevels) // debugging
     // now we can create the actual output
     // these are the guys we need to build a 'screen' (not actually one but we'll map all characters into a matrix that will be converted into a string afterwards)
-    var line = creators_1.array(20, '  ');
     var screen = [];
     // these are the characters we use to create the tree
     var box = '\u25A7';
@@ -292,16 +322,15 @@ function printArray(input, name) {
     var down_right = '\u2514';
     // the actual line we're on
     var lc = 0;
-    for (var j in itemArray) {
-        // we can't use it as a string
-        var i = Number(j);
+    // THE ACTUAL STUFF
+    for (var i = 0; i < itemArray.length; i++) {
         // the current x-position in the screen matrix
         var mat_pos = deepArray[i];
         // add a new line for the next item and save the count
-        screen.push(clone(line));
+        screen.push(creators_1.array(deepArray[i] + 1, '  '));
         // put a nice box in the beginning
         if (i == 0) {
-            screen.push(clone(line));
+            screen.push(creators_1.array(deepArray[i] + 1, '  '));
             if (name) { // if name for the array was given
                 screen[lc][mat_pos] = name;
             }
@@ -310,14 +339,35 @@ function printArray(input, name) {
             }
             lc++;
         }
+        // put node for new arrays
+        if (itemArray[i] === null) {
+            // add a new line for vertex and jump into it
+            screen.push(creators_1.array(deepArray[i] + 1, '  '));
+            lc++;
+            // add the vertex and the box next to it
+            if (itemLevels[i].sub.includes(-1)) {
+                // if there is no item on the current level left
+                screen[lc][mat_pos] = down_right + hor;
+            }
+            else {
+                screen[lc][mat_pos] = ver_right + hor;
+            }
+            screen[lc][mat_pos + 1] = box + ' ';
+            lc--;
+        }
         // put the tree section for current item
         if (itemLevels[i].next == 1) {
-            screen[lc][mat_pos] = ver_right + hor;
-            // add the actual item
-            screen[lc][mat_pos + 1] = ' ' + itemArray[i];
-            // add a new line for vertex and jump into it
-            screen.push(clone(line));
-            lc++;
+            // add the actual item but exclude dummies
+            if (itemArray[i] !== null) {
+                screen[lc][mat_pos] = ver_right + hor;
+                screen[lc][mat_pos + 1] = ' ' + itemArray[i];
+                // hop into the next line
+                lc++;
+            }
+            else {
+                // remove te line that was placeholding the dummies and reduce the counter to match the new line
+                screen.splice(lc, 1);
+            }
             // add the vertex and the box next to it
             if (itemLevels[i].sub.includes(-1)) {
                 // if there is no item on the current level left
@@ -359,6 +409,7 @@ function printArray(input, name) {
         }
         text += '\n';
     }
+    // console.table(screen) // debugging
     // FINALLY print the array tree
     console.log();
     console.log(text);
