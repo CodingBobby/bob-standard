@@ -1,23 +1,33 @@
+// some functions from other modules we'll need here
 import { gcd, smti, max } from './calc'
 import { array } from './creators'
 
+// returns a random float (!) in the range 'from' - 'to' which both are inclusive
 export function rand(from: number, to: number): number {
    return Math.random() * (to - from) + from
 }
 
+// returns a deep copy of the inserted object of any (!) type
 export function clone(object: any): any {
    if(null == object || "object" != typeof object) return object
+   // create new blank object of same type
    let copy = object.constructor()
+
+   // copy all attributes into it
    for(let attr in object) {
-      if(object.hasOwnProperty(attr)) copy[attr] = object[attr]
+      if(object.hasOwnProperty(attr)) {
+         copy[attr] = object[attr]
+      }
    }
    return copy
 }
 
+// returns a random item from a given array
 export function pick(array: any[]): any {
    return array[Math.floor(Math.random() * array.length)]
 }
 
+// returns the inserted array, but with item A and item B swapped
 export function swap(array: any[], indexA: number, indexB: number): any[] {
    let cache = array[indexA]
    array[indexA] = array[indexB]
@@ -25,10 +35,16 @@ export function swap(array: any[], indexA: number, indexB: number): any[] {
    return array
 }
 
+// returns the inserted array from which the items from the other
+// array are being removed, items from the other array that are not
+// inside of the original one are ignored
 export function remove(array: any[], remove: any[]): any[] {
    return array.filter(el => !remove.includes(el))
 }
 
+// returns the inserted array which items are 'cranked' up, by that I mean
+// to produce integers from float numbers without loosing the ratio to
+// all the other items
 export function crankup(items: number[]): number[] {
    for(let i in items) {
       let multiple = smti(items[i])
@@ -39,6 +55,7 @@ export function crankup(items: number[]): number[] {
    return items
 }
 
+// returns an array of a weighted amount of each of the original items
 export function weight(items: any[], weights: number[]): any[] {
    if(items.length !== weights.length) {
       console.error('arrays do not match!')
@@ -67,6 +84,7 @@ export function weight(items: any[], weights: number[]): any[] {
    return witems
 }
 
+// extracts data from string and splits it at a given identifier
 export function extract(input: string, identifier: string): any[] {
    let rows = input.split('\n')
    let reg = RegExp(identifier)
@@ -87,8 +105,11 @@ export function extract(input: string, identifier: string): any[] {
    return out
 }
 
+// custom type for function below, allows end user to see available
+// properties of the return value
 type size<keys, values> = { keys: number, values: number}
 
+// returns size object representing the size of input object
 export function size(object: object): size<number, number> {
    let s = { keys: 0, values: 0 }
 
@@ -109,11 +130,14 @@ export function size(object: object): size<number, number> {
    return s
 }
 
+// returns a string containing the type of input item, detects
+// any custom type and can distinguish between objects and arrays
 export function type(item: any): string {
 	var text = item.constructor.toString()
 	return text.match(/function (.*)\(/)[1]
 }
 
+// custom log method that colors values according to their type
 export function say(...args) {
    if(args.length === 2 && typeof args[0] == 'string') {
       sayHelper(args[0],args[1])
@@ -162,45 +186,14 @@ export function say(...args) {
       helper(input)
       return str
    }
-   function helperold(e) {
-      switch(type(e)) {
-         
-         case 'String': {
-            console.log('\x1b[34m%s\x1b[0m', e)
-            break
-         }
-         case 'Number': {
-            console.log('\x1b[36m%s\x1b[0m', e)
-            break
-         }
-         case 'Boolean': {
-            console.log('\x1b[33m%s\x1b[0m', e)
-            break
-         }
-         case 'Array':
-         case 'Object': {
-            console.table(e)
-            break
-         }
-         case 'Function': {
-            // This is a temporary fix to prevent functions to be
-            // printed to the console. Done because somewhy methods
-            // that have been added to an existing prototype print
-            // to the console, which is unwanted.
-            break
-         }
-         default: {
-            console.log('\x1b[37m%s\x1b[0m', e)
-            break
-         }
-      }
-   }
 }
 
 export function err(msg: string) {
    sayError(msg)
 }
 
+// helpers for say and err methods, not exported because they
+// are only required inside this module
 function sayHelper(t,v) {
    say('\x1b[2m'+t+': \x1b[0m\x1b[35m'+[v]+'\x1b[0m')
 }
@@ -209,6 +202,8 @@ function sayError(t) {
    say('\x1b[41m\x1b[36m'+t+'\x1b[0m')
 }
 
+// neat little method that prints a tree of input array that can
+// be nested in multiple levels
 export function printArray(input, name?: string) {
    // used for getting the deepness of nested items
    let deepness: number = 0
@@ -234,7 +229,8 @@ export function printArray(input, name?: string) {
       function helper(e) {
          for(let i in e) {
             if(type(e[i]) == 'Array') {
-               // to distinguish between arrays following each other on the same level, we introduce dummy nulls
+               // to distinguish between arrays following each other
+               // on the same level, we introduce dummy nulls
                itemArray.push(null)
                helper(e[i])
             } else {
@@ -246,20 +242,23 @@ export function printArray(input, name?: string) {
       helper(arr)
    }
 
-   // the actual items
+   // get the actual items
    getItems(input)
 
-   // their deepness / level
+   // get their deepness, called it level sometimes, sorry for that
    mapDeepness(input)
 
-   // its ia also important to know where the items are linked, by that I mean the level of the array our current item is inside which is always one below the actual level
+   // its ia also important to know where the items are linked,
+   // by that I mean the level of the array our current item
+   // is inside which is always one below the actual level
    let anchorArray: number[] = []
 
    for(let i in deepArray) {
       anchorArray.push(deepArray[i]-1)
    }
 
-   // to have the deepArray containing the dummies as well, we recreate it and check for available dummies
+   // to have the deepArray containing the dummies as well,
+   // we recreate it and check for available dummies
    let newDeep: number[] = []
    let t: number = 0 // another parallel counter for below
    for(let i in itemArray) {
@@ -270,18 +269,9 @@ export function printArray(input, name?: string) {
       }
    }
 
-   // debugging
-   // console.log('input:')
-   // console.log(input)
-   // console.log('itemArray:')
-   // console.log(itemArray)
-   // console.log('deepArray:')
-   // console.log(deepArray)
-   // console.log('anchorArray:')
-   // console.log(anchorArray)
-   // console.log('newDeep:')
-   // console.log(newDeep)
-
+   // we update the old deepArray with the just created
+   // content (couldn't do it right in the same array cause we
+   // need it for exactly that)
    deepArray = clone(newDeep)
 
    // we have to get the level changes and sublevels as well
@@ -311,7 +301,8 @@ export function printArray(input, name?: string) {
       // get the max level
       let maxlvl: number = max(deepArray)
 
-      // check if any level appears before and after the current item and if yes, put it in the sub array
+      // check if any level appears before and after the
+      // current item and if yes, put it in the sub array
       for(let l=0; l<maxlvl; l++) {
          if(before.includes(l) && after.includes(l)) {
             // just push levels lower than itself
@@ -332,11 +323,11 @@ export function printArray(input, name?: string) {
       })
    }
 
-   // console.log(itemLevels) // debugging
-
    // now we can create the actual output
 
-   // these are the guys we need to build a 'screen' (not actually one but we'll map all characters into a matrix that will be converted into a string afterwards)
+   // this is a 'screen' (not actually
+   // one but we'll map all characters into a matrix that will
+   // be converted into a string afterwards)
    let screen: string[][] = []
 
    // these are the characters we use to create the tree
@@ -396,7 +387,8 @@ export function printArray(input, name?: string) {
             // hop into the next line
             lc++
          } else {
-            // remove te line that was placeholding the dummies and reduce the counter to match the new line
+            // remove te line that was placeholding the dummies
+            // and reduce the counter to match the new line
             screen.splice(lc, 1)
          }
 
@@ -433,7 +425,8 @@ export function printArray(input, name?: string) {
       lc++
    }
 
-   // here we loop through the screen matrix and add everything to one string we can then log
+   // here we loop through the screen matrix and add everything
+   // to one string we can then log
    let text: string = ''
    for(let r in screen) {
       for(let s in screen[r]) {
@@ -442,9 +435,7 @@ export function printArray(input, name?: string) {
       text += '\n'
    }
 
-   // console.table(screen) // debugging
-
    // FINALLY print the array tree
    console.log()
    console.log(text)
-}
+} // END of printArray()

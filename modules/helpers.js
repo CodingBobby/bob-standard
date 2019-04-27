@@ -1,26 +1,34 @@
 "use strict";
 exports.__esModule = true;
+// some functions from other modules we'll need here
 var calc_1 = require("./calc");
 var creators_1 = require("./creators");
+// returns a random float (!) in the range 'from' - 'to' which both are inclusive
 function rand(from, to) {
     return Math.random() * (to - from) + from;
 }
 exports.rand = rand;
+// returns a deep copy of the inserted object of any (!) type
 function clone(object) {
     if (null == object || "object" != typeof object)
         return object;
+    // create new blank object of same type
     var copy = object.constructor();
+    // copy all attributes into it
     for (var attr in object) {
-        if (object.hasOwnProperty(attr))
+        if (object.hasOwnProperty(attr)) {
             copy[attr] = object[attr];
+        }
     }
     return copy;
 }
 exports.clone = clone;
+// returns a random item from a given array
 function pick(array) {
     return array[Math.floor(Math.random() * array.length)];
 }
 exports.pick = pick;
+// returns the inserted array, but with item A and item B swapped
 function swap(array, indexA, indexB) {
     var cache = array[indexA];
     array[indexA] = array[indexB];
@@ -28,10 +36,16 @@ function swap(array, indexA, indexB) {
     return array;
 }
 exports.swap = swap;
+// returns the inserted array from which the items from the other
+// array are being removed, items from the other array that are not
+// inside of the original one are ignored
 function remove(array, remove) {
     return array.filter(function (el) { return !remove.includes(el); });
 }
 exports.remove = remove;
+// returns the inserted array which items are 'cranked' up, by that I mean
+// to produce integers from float numbers without loosing the ratio to
+// all the other items
 function crankup(items) {
     for (var i in items) {
         var multiple = calc_1.smti(items[i]);
@@ -42,6 +56,7 @@ function crankup(items) {
     return items;
 }
 exports.crankup = crankup;
+// returns an array of a weighted amount of each of the original items
 function weight(items, weights) {
     if (items.length !== weights.length) {
         console.error('arrays do not match!');
@@ -65,6 +80,7 @@ function weight(items, weights) {
     return witems;
 }
 exports.weight = weight;
+// extracts data from string and splits it at a given identifier
 function extract(input, identifier) {
     var rows = input.split('\n');
     var reg = RegExp(identifier);
@@ -86,6 +102,7 @@ function extract(input, identifier) {
     return out;
 }
 exports.extract = extract;
+// returns size object representing the size of input object
 function size(object) {
     var s = { keys: 0, values: 0 };
     function find(obj) {
@@ -105,11 +122,14 @@ function size(object) {
     return s;
 }
 exports.size = size;
+// returns a string containing the type of input item, detects
+// any custom type and can distinguish between objects and arrays
 function type(item) {
     var text = item.constructor.toString();
     return text.match(/function (.*)\(/)[1];
 }
 exports.type = type;
+// custom log method that colors values according to their type
 function say() {
     var args = [];
     for (var _i = 0; _i < arguments.length; _i++) {
@@ -160,50 +180,22 @@ function say() {
         helper(input);
         return str;
     }
-    function helperold(e) {
-        switch (type(e)) {
-            case 'String': {
-                console.log('\x1b[34m%s\x1b[0m', e);
-                break;
-            }
-            case 'Number': {
-                console.log('\x1b[36m%s\x1b[0m', e);
-                break;
-            }
-            case 'Boolean': {
-                console.log('\x1b[33m%s\x1b[0m', e);
-                break;
-            }
-            case 'Array':
-            case 'Object': {
-                console.table(e);
-                break;
-            }
-            case 'Function': {
-                // This is a temporary fix to prevent functions to be
-                // printed to the console. Done because somewhy methods
-                // that have been added to an existing prototype print
-                // to the console, which is unwanted.
-                break;
-            }
-            default: {
-                console.log('\x1b[37m%s\x1b[0m', e);
-                break;
-            }
-        }
-    }
 }
 exports.say = say;
 function err(msg) {
     sayError(msg);
 }
 exports.err = err;
+// helpers for say and err methods, not exported because they
+// are only required inside this module
 function sayHelper(t, v) {
     say('\x1b[2m' + t + ': \x1b[0m\x1b[35m' + [v] + '\x1b[0m');
 }
 function sayError(t) {
     say('\x1b[41m\x1b[36m' + t + '\x1b[0m');
 }
+// neat little method that prints a tree of input array that can
+// be nested in multiple levels
 function printArray(input, name) {
     // used for getting the deepness of nested items
     var deepness = 0;
@@ -227,7 +219,8 @@ function printArray(input, name) {
         function helper(e) {
             for (var i in e) {
                 if (type(e[i]) == 'Array') {
-                    // to distinguish between arrays following each other on the same level, we introduce dummy nulls
+                    // to distinguish between arrays following each other
+                    // on the same level, we introduce dummy nulls
                     itemArray.push(null);
                     helper(e[i]);
                 }
@@ -238,16 +231,19 @@ function printArray(input, name) {
         }
         helper(arr);
     }
-    // the actual items
+    // get the actual items
     getItems(input);
-    // their deepness / level
+    // get their deepness, called it level sometimes, sorry for that
     mapDeepness(input);
-    // its ia also important to know where the items are linked, by that I mean the level of the array our current item is inside which is always one below the actual level
+    // its ia also important to know where the items are linked,
+    // by that I mean the level of the array our current item
+    // is inside which is always one below the actual level
     var anchorArray = [];
     for (var i in deepArray) {
         anchorArray.push(deepArray[i] - 1);
     }
-    // to have the deepArray containing the dummies as well, we recreate it and check for available dummies
+    // to have the deepArray containing the dummies as well,
+    // we recreate it and check for available dummies
     var newDeep = [];
     var t = 0; // another parallel counter for below
     for (var i in itemArray) {
@@ -258,17 +254,9 @@ function printArray(input, name) {
             newDeep.push(deepArray[t++]);
         }
     }
-    // debugging
-    // console.log('input:')
-    // console.log(input)
-    // console.log('itemArray:')
-    // console.log(itemArray)
-    // console.log('deepArray:')
-    // console.log(deepArray)
-    // console.log('anchorArray:')
-    // console.log(anchorArray)
-    // console.log('newDeep:')
-    // console.log(newDeep)
+    // we update the old deepArray with the just created
+    // content (couldn't do it right in the same array cause we
+    // need it for exactly that)
     deepArray = clone(newDeep);
     // we have to get the level changes and sublevels as well
     var itemLevels = [];
@@ -290,7 +278,8 @@ function printArray(input, name) {
         var after = deepArray.slice(Number(i) + 1);
         // get the max level
         var maxlvl = calc_1.max(deepArray);
-        // check if any level appears before and after the current item and if yes, put it in the sub array
+        // check if any level appears before and after the
+        // current item and if yes, put it in the sub array
         for (var l = 0; l < maxlvl; l++) {
             if (before.includes(l) && after.includes(l)) {
                 // just push levels lower than itself
@@ -309,9 +298,10 @@ function printArray(input, name) {
             sub: sub
         });
     }
-    // console.log(itemLevels) // debugging
     // now we can create the actual output
-    // these are the guys we need to build a 'screen' (not actually one but we'll map all characters into a matrix that will be converted into a string afterwards)
+    // this is a 'screen' (not actually
+    // one but we'll map all characters into a matrix that will
+    // be converted into a string afterwards)
     var screen = [];
     // these are the characters we use to create the tree
     var box = '\u25A7';
@@ -365,7 +355,8 @@ function printArray(input, name) {
                 lc++;
             }
             else {
-                // remove te line that was placeholding the dummies and reduce the counter to match the new line
+                // remove te line that was placeholding the dummies
+                // and reduce the counter to match the new line
                 screen.splice(lc, 1);
             }
             // add the vertex and the box next to it
@@ -401,7 +392,8 @@ function printArray(input, name) {
         // hop into the next line
         lc++;
     }
-    // here we loop through the screen matrix and add everything to one string we can then log
+    // here we loop through the screen matrix and add everything
+    // to one string we can then log
     var text = '';
     for (var r in screen) {
         for (var s in screen[r]) {
@@ -409,9 +401,8 @@ function printArray(input, name) {
         }
         text += '\n';
     }
-    // console.table(screen) // debugging
     // FINALLY print the array tree
     console.log();
     console.log(text);
-}
+} // END of printArray()
 exports.printArray = printArray;
