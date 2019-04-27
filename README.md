@@ -48,3 +48,30 @@ let v2 = new bob.Vector2D(6, 1)
 // cross product on 2D vectors
 v1.cross(v2) instanceof Vector3D // true
 ```
+
+### Example 3
+
+```js
+// set up a deeply nested array
+let something = [11, ['foo', 'bar', [12, 13], 'baz'], ['nice lib', 14]]
+
+// log a nice tree to the console
+bob.printArray(something)
+
+/** output:
+
+▧ 
+├─ 11
+├─▧ 
+│ ├─ foo
+│ ├─ bar
+│ ├─▧ 
+│ │ ├─ 12
+│ │ └─ 13
+│ └─ baz
+└─▧ 
+  ├─ nice lib
+  └─ 14
+
+**/
+```
