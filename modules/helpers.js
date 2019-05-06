@@ -125,8 +125,9 @@ exports.size = size;
 // returns a string containing the type of input item, detects
 // any custom type and can distinguish between objects and arrays
 function type(item) {
-    var text = item.constructor.toString();
-    return text.match(/function (.*)\(/)[1];
+    var construct = item.constructor.toString();
+    // matcher seen on stackoverflow, cannot find it anymore :(
+    return construct.match(/function (.*)\(/)[1];
 }
 exports.type = type;
 // custom log method that colors values according to their type
@@ -146,38 +147,17 @@ function say() {
     function logPut(input) {
         var str = '';
         var counter = 0;
-        function helper(e) {
-            switch (type(e)) {
-                case 'String': {
-                    str += "\u001B[34m" + e + "\u001B[0m";
-                    break;
-                }
-                case 'Number': {
-                    str += "\u001B[36m" + e + "\u001B[0m";
-                    break;
-                }
-                case 'Boolean': {
-                    str += "\u001B[33m" + e + "\u001B[0m";
-                    break;
-                }
-                case 'Array': {
-                    str += '\u2514 ';
-                    for (var i_1 in e) {
-                        counter++;
-                        helper(e[i_1]);
-                        if ((counter + 1) >= e.length) {
-                            str += '\n';
-                        }
-                    }
-                    break;
-                }
-                case 'Object': {
-                    break;
-                }
+        switch (type(input)) {
+            case 'Array': {
+                printArray(input);
+                break;
             }
-            str += ' ';
+            default: {
+                str += typeColor(input).toString();
+                break;
+            }
         }
-        helper(input);
+        str += ' ';
         return str;
     }
 }
@@ -193,6 +173,52 @@ function sayHelper(t, v) {
 }
 function sayError(t) {
     say('\x1b[41m\x1b[36m' + t + '\x1b[0m');
+}
+// returns a string containing the item value surrounded by colorcodes
+// according to their value type, optional toColor can be another item
+// which type will be checked instead while returning the value of the
+// original item
+function typeColor(item, toColor) {
+    var str;
+    toColor = toColor || item;
+    switch (type(toColor)) {
+        case 'String': {
+            str = "\u001B[32m" + item + "\u001B[0m";
+            break;
+        }
+        case 'Number': {
+            str = "\u001B[36m" + item + "\u001B[0m";
+            break;
+        }
+        case 'Boolean': {
+            str = "\u001B[33m" + item + "\u001B[0m";
+            break;
+        }
+        case 'Function': {
+            str = "\u001B[35m" + item.name + "()\u001B[0m";
+            break;
+        }
+        case 'Object': {
+            var props = Object.getOwnPropertyNames(item);
+            var propString = '';
+            // we want to display the properties of the object
+            for (var i in props) {
+                // get the color of the properly value and not the key,
+                // thats why we pass the optional item
+                propString += typeColor(props[i], item[props[i]]);
+                if (Number(i) + 1 < props.length) {
+                    propString += '\x1b[34m' + ', ' + '\x1b[0m';
+                }
+            }
+            str = "\u001B[34mobject: {\u001B[0m" + propString + "\u001B[34m}\u001B[0m";
+            break;
+        }
+        default: {
+            str = '\x1b[0m' + item.toString() + '\x1b[0m';
+            break;
+        }
+    }
+    return str;
 }
 // neat little method that prints a tree of input array that can
 // be nested in multiple levels
@@ -235,22 +261,24 @@ function printArray(input, name) {
     getItems(input);
     // get their deepness, called it level sometimes, sorry for that
     mapDeepness(input);
-    // its ia also important to know where the items are linked,
-    // by that I mean the level of the array our current item
-    // is inside which is always one below the actual level
+    // it is also important to know where the items are linked,
+    // by that I mean the level of the array our current item is inside
+    // that level is always one below the current level of the actual item
     var anchorArray = [];
     for (var i in deepArray) {
         anchorArray.push(deepArray[i] - 1);
     }
     // to have the deepArray containing the dummies as well,
-    // we recreate it and check for available dummies
+    // we recreate it and check for available dummies. for that we use a
+    // separate counter as we will jump ahead the actual length of the itemArray
+    // when we arrive at an item which is not a dummy
     var newDeep = [];
-    var t = 0; // another parallel counter for below
+    var t = 0; // other parallel counter for below
     for (var i in itemArray) {
         if (itemArray[i] === null) {
             newDeep.push(anchorArray[t]);
         }
-        else {
+        else { // only count up when its an actual item
             newDeep.push(deepArray[t++]);
         }
     }
@@ -304,12 +332,15 @@ function printArray(input, name) {
     // be converted into a string afterwards)
     var screen = [];
     // these are the characters we use to create the tree
-    var box = '\u25A7';
-    var hor = '\u2500';
-    var ver = '\u2502';
-    var ver_right = '\u251C';
-    var hor_down = '\u252C';
-    var down_right = '\u2514';
+    // let box: string = '\u25A7'
+    var hor = '\x1b[1;37m\u2500\x1b[0m';
+    var ver = '\x1b[1;37m\u2502\x1b[0m';
+    var ver_right = '\x1b[1;37m\u251C\x1b[0m';
+    var hor_down = '\x1b[1;37m\u252C\x1b[0m';
+    var down_right = '\x1b[1;37m\u2514\x1b[0m';
+    var box = "\u001B[1;31m\u25A7\u001B[0m";
+    var box_start = "" + box;
+    var box_node = hor_down + " " + box;
     // the actual line we're on
     var lc = 0;
     // THE ACTUAL STUFF
@@ -325,7 +356,7 @@ function printArray(input, name) {
                 screen[lc][mat_pos] = name;
             }
             else {
-                screen[lc][mat_pos] = box + ' ';
+                screen[lc][mat_pos] = box_start + ' ';
             }
             lc++;
         }
@@ -342,7 +373,7 @@ function printArray(input, name) {
             else {
                 screen[lc][mat_pos] = ver_right + hor;
             }
-            screen[lc][mat_pos + 1] = box + ' ';
+            screen[lc][mat_pos + 1] = box_node + ' ';
             lc--;
         }
         // put the tree section for current item
@@ -350,7 +381,7 @@ function printArray(input, name) {
             // add the actual item but exclude dummies
             if (itemArray[i] !== null) {
                 screen[lc][mat_pos] = ver_right + hor;
-                screen[lc][mat_pos + 1] = ' ' + itemArray[i];
+                screen[lc][mat_pos + 1] = ' ' + typeColor(itemArray[i]);
                 // hop into the next line
                 lc++;
             }
@@ -367,19 +398,19 @@ function printArray(input, name) {
             else {
                 screen[lc][mat_pos] = ver_right + hor;
             }
-            screen[lc][mat_pos + 1] = box + ' ';
+            screen[lc][mat_pos + 1] = box_node + ' ';
         }
         else if (itemLevels[i].next == 0) {
             // nothing special happens here, just add a new vertex
             screen[lc][mat_pos] = ver_right + hor;
             // add the actual item
-            screen[lc][mat_pos + 1] = ' ' + itemArray[i];
+            screen[lc][mat_pos + 1] = ' ' + typeColor(itemArray[i]);
         }
         else if (itemLevels[i].next == -1) {
             // end of root is reached, add a corner
             screen[lc][mat_pos] = down_right + hor;
             // add the actual item
-            screen[lc][mat_pos + 1] = ' ' + itemArray[i];
+            screen[lc][mat_pos + 1] = ' ' + typeColor(itemArray[i]);
         }
         // add vertical carriers on all sublevels
         for (var k in itemLevels[i].sub) {
@@ -406,3 +437,9 @@ function printArray(input, name) {
     console.log(text);
 } // END of printArray()
 exports.printArray = printArray;
+// returns the array index number of an object that has the given value at the given property
+function objIndex(array, property, value) {
+    // by German Attanasio
+    return array.map(function (e) { return e[property]; }).indexOf(value);
+}
+exports.objIndex = objIndex;

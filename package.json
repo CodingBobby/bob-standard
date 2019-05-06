@@ -1,6 +1,6 @@
 {
   "name": "bob-standard",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "bobs standard library with basic stuff",
   "main": "bob-standard.js",
   "author": {
@@ -15,5 +15,6 @@
     "url": "https://github.com/CodingBobby/bob-standard/issues",
     "email": "contact@codingbobby.xyz"
   },
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {}
 }

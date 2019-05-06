@@ -133,8 +133,10 @@ export function size(object: object): size<number, number> {
 // returns a string containing the type of input item, detects
 // any custom type and can distinguish between objects and arrays
 export function type(item: any): string {
-	var text = item.constructor.toString()
-	return text.match(/function (.*)\(/)[1]
+   let construct = item.constructor.toString()
+
+   // matcher seen on stackoverflow, cannot find it anymore :(
+	return construct.match(/function (.*)\(/)[1]
 }
 
 // custom log method that colors values according to their type
@@ -149,41 +151,19 @@ export function say(...args) {
    function logPut(input) {
       let str: String = ''
       let counter: number = 0
-      
 
-      function helper(e) {
-         switch(type(e)) {
-            case 'String': {
-               str += `\x1b[34m${e}\x1b[0m`
-               break
-            }
-            case 'Number': {
-               str += `\x1b[36m${e}\x1b[0m`
-               break
-            }
-            case 'Boolean': {
-               str += `\x1b[33m${e}\x1b[0m`
-               break
-            }
-            case 'Array': {
-               str += '\u2514 '
-               for(let i in e) {
-                  counter++
-                  helper(e[i])
-                  if((counter+1) >= e.length) {
-                     str += '\n'
-                  }
-               }
-               break
-            }
-            case 'Object': {
-               break
-            }
+      switch(type(input)) {
+         case 'Array': {
+            printArray(input)
+            break
          }
-         str += ' '
+         default: {
+            str += typeColor(input).toString()
+            break
+         }
       }
 
-      helper(input)
+      str += ' '
       return str
    }
 }
@@ -202,9 +182,58 @@ function sayError(t) {
    say('\x1b[41m\x1b[36m'+t+'\x1b[0m')
 }
 
+// returns a string containing the item value surrounded by colorcodes
+// according to their value type, optional toColor can be another item
+// which type will be checked instead while returning the value of the
+// original item
+function typeColor(item: any, toColor?: any): String {
+   let str: String
+   toColor = toColor || item
+   switch(type(toColor)) {
+      case 'String': {
+         str = `\x1b[32m${item}\x1b[0m`
+         break
+      }
+      case 'Number': {
+         str = `\x1b[36m${item}\x1b[0m`
+         break
+      }
+      case 'Boolean': {
+         str = `\x1b[33m${item}\x1b[0m`
+         break
+      }
+      case 'Function': {
+         str = `\x1b[35m${item.name}()\x1b[0m`
+         break
+      }
+      case 'Object': {
+         let props = Object.getOwnPropertyNames(item)
+         let propString = ''
+
+         // we want to display the properties of the object
+         for(let i in props) {
+            // get the color of the properly value and not the key,
+            // thats why we pass the optional item
+            propString += typeColor(props[i], item[props[i]])
+            if(Number(i)+1 < props.length) {
+               propString += '\x1b[34m'+', '+'\x1b[0m'
+            }
+         }
+
+         str = `\x1b[34mobject: {\x1b[0m`+propString+`\x1b[34m}\x1b[0m`
+         break
+      }
+      default: {
+         str = '\x1b[0m'+item.toString()+'\x1b[0m'
+         break
+      }
+   }
+   return str
+}
+
 // neat little method that prints a tree of input array that can
 // be nested in multiple levels
-export function printArray(input, name?: string) {
+export function printArray(input, name?: string) {
    // used for getting the deepness of nested items
    let deepness: number = 0
    let deepArray: number[] = []
@@ -248,23 +277,24 @@ export function printArray(input, name?: string) {
    // get their deepness, called it level sometimes, sorry for that
    mapDeepness(input)
 
-   // its ia also important to know where the items are linked,
-   // by that I mean the level of the array our current item
-   // is inside which is always one below the actual level
+   // it is also important to know where the items are linked,
+   // by that I mean the level of the array our current item is inside
+   // that level is always one below the current level of the actual item
    let anchorArray: number[] = []
-
    for(let i in deepArray) {
       anchorArray.push(deepArray[i]-1)
    }
 
    // to have the deepArray containing the dummies as well,
-   // we recreate it and check for available dummies
+   // we recreate it and check for available dummies. for that we use a
+   // separate counter as we will jump ahead the actual length of the itemArray
+   // when we arrive at an item which is not a dummy
    let newDeep: number[] = []
-   let t: number = 0 // another parallel counter for below
+   let t: number = 0 // other parallel counter for below
    for(let i in itemArray) {
       if(itemArray[i] === null) {
          newDeep.push(anchorArray[t])
-      } else {
+      } else { // only count up when its an actual item
          newDeep.push(deepArray[t++])
       }
    }
@@ -331,12 +361,15 @@ export function printArray(input, name?: string) {
    let screen: string[][] = []
 
    // these are the characters we use to create the tree
-   let box: string = '\u25A7'
-   let hor: string = '\u2500'
-   let ver: string = '\u2502'
-   let ver_right: string = '\u251C'
-   let hor_down: string = '\u252C'
-   let down_right: string = '\u2514'
+   // let box: string = '\u25A7'
+   let hor: string = '\x1b[1;37m\u2500\x1b[0m'
+   let ver: string = '\x1b[1;37m\u2502\x1b[0m'
+   let ver_right: string = '\x1b[1;37m\u251C\x1b[0m'
+   let hor_down: string = '\x1b[1;37m\u252C\x1b[0m'
+   let down_right: string = '\x1b[1;37m\u2514\x1b[0m'
+   let box = `\x1b[1;31m\u25A7\x1b[0m`
+   let box_start = `${box}`
+   let box_node = `${hor_down} ${box}`
 
    // the actual line we're on
    let lc: number = 0
@@ -355,7 +388,7 @@ export function printArray(input, name?: string) {
          if(name) { // if name for the array was given
             screen[lc][mat_pos] = name
          } else {
-            screen[lc][mat_pos] = box+' '
+            screen[lc][mat_pos] = box_start+' '
          }
          lc++
       }
@@ -373,7 +406,7 @@ export function printArray(input, name?: string) {
          } else {
             screen[lc][mat_pos] = ver_right+hor
          }
-         screen[lc][mat_pos+1] = box+' '
+         screen[lc][mat_pos+1] = box_node+' '
          lc--
       }
 
@@ -383,7 +416,7 @@ export function printArray(input, name?: string) {
          // add the actual item but exclude dummies
          if(itemArray[i] !== null) {
             screen[lc][mat_pos] = ver_right+hor
-            screen[lc][mat_pos+1] = ' ' + itemArray[i]
+            screen[lc][mat_pos+1] = ' ' + typeColor(itemArray[i])
             // hop into the next line
             lc++
          } else {
@@ -399,17 +432,17 @@ export function printArray(input, name?: string) {
          } else {
             screen[lc][mat_pos] = ver_right+hor
          }
-         screen[lc][mat_pos+1] = box+' '
+         screen[lc][mat_pos+1] = box_node+' '
       } else if(itemLevels[i].next == 0) {
          // nothing special happens here, just add a new vertex
          screen[lc][mat_pos] = ver_right+hor
          // add the actual item
-         screen[lc][mat_pos+1] = ' ' + itemArray[i]
+         screen[lc][mat_pos+1] = ' ' + typeColor(itemArray[i])
       } else if(itemLevels[i].next == -1) {
          // end of root is reached, add a corner
          screen[lc][mat_pos] = down_right+hor
          // add the actual item
-         screen[lc][mat_pos+1] = ' ' + itemArray[i]
+         screen[lc][mat_pos+1] = ' ' + typeColor(itemArray[i])
       } 
 
       // add vertical carriers on all sublevels
@@ -439,3 +472,9 @@ export function printArray(input, name?: string) {
    console.log()
    console.log(text)
 } // END of printArray()
+
+// returns the array index number of an object that has the given value at the given property
+export function objIndex(array: Object[], property: string, value: string): number {
+   // by German Attanasio
+   return array.map(e => e[property]).indexOf(value)
+}

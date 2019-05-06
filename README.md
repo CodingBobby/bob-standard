@@ -1,6 +1,6 @@
 # Bobs standard library for node.js
 
-This is my personal standard library with handy functions I find myself declaring far too often. Please don't expect anything enormous.
+This is my personal standard library with handy functions I find myself declaring far too often. Please don't expect anything enormous. The library is dependecy-free as I want to keep the learning effect I experience while implementing algorithms from scratch. Implementations done by other developers I copied / modified are unambiguously marked as such.
 
 ## Getting started
 
