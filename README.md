@@ -1,18 +1,26 @@
 # Bobs standard library for node.js
 
-This is my personal standard library with handy functions I find myself declaring far too often. Please don't expect anything enormous. The library is dependecy-free as I want to keep the learning effect I experience while implementing algorithms from scratch. Implementations done by other developers I copied / modified are unambiguously marked as such.
+This is my personal standard library with handy functions I find myself declaring far too often. Please don't expect anything enormous. The library is 100% dependency-free as I want to keep the learning effect I experience while implementing algorithms from scratch. Implementations done by other developers I copied / modified are unambiguously marked as such.
 
 ## Getting started
 
+First, get over to your terminal and install this library with this command:
+```bash
+npm i bob-standard
+```
 To include this library into your node.js project, simply require it like so:
 ```js
 const bob = require('bob-standard')
 ```
-Thats all! Now you have access to all provided functions. Please note that this is just my personal library, I may change content without warning which could make your project thow unexpected errors. If anything strange happens, please report an [issue](https://github.com/CodingBobby/bob-standard/issues) or contact me via [email](mailto:conatct@codingbobby.xyz).
+Thats all! Now you have access to all provided functions. Please note that this is just my personal library, I may change content without warning which could make your project thow unexpected errors. If anything strange happens, please report an [issue](https://github.com/CodingBobby/bob-standard/issues).
+
+## Notes
+
+The method `Reaction.balance()` does not work properly at this time. It will be updated shortly.
 
 ## Example usage
 
-Here are a few examples using methods from this library. For details on each available method, please check out the [documentation](https://github.com/CodingBobby/bob-standard/blob/master/DOCS.md).
+Here are a few examples using functions included in this library. For details on each available method, please check out the [documentation](https://github.com/CodingBobby/bob-standard/blob/master/DOCS.md).
 
 ### Example 1
 
@@ -59,7 +67,6 @@ let something = [11, ['foo', 'bar', [12, 13], 'baz'], ['nice lib', 14]]
 bob.printArray(something)
 
 /** output:
-
 ▧ 
 ├─ 11
 ├─▧ 
@@ -72,6 +79,16 @@ bob.printArray(something)
 └─▧ 
   ├─ nice lib
   └─ 14
-
 **/
+```
+
+### Example 4
+
+```js
+// set angle unit to degrees
+bob.angleMode('DEG')
+
+// use trigonometric functions
+bob.sin('30') // 0.5
+bob.cos('45') // 0.7071...
 ```

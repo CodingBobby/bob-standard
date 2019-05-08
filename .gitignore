@@ -6,3 +6,9 @@
 *.old.*
 *.p.*
 /node_modules
+/algorithms
+data.csv
+data.json
+parser.ts
+parser.js
+package-lock.json
