@@ -1,5 +1,5 @@
 import { devi, round } from './calc'
-import { err, say, printArray, colorize } from './helpers';
+import { err, say, printArray, colorize, type } from './helpers'
 
 // VECTORS
 
@@ -312,18 +312,26 @@ export class Matrix {
       return mat
    }
 
-   private fix() { // fix for dividing errors
-      let m: Matrix = new Matrix(this.create(this.size().height))
+   public clone(cloneData?: 1): Matrix {
+      if(cloneData) {
+         return new Matrix(this.data)
+      } else {
+         return new Matrix(this.create(this.size().height))
+      }  
+   }
+
+   private fix(decimals) { // fix for dividing errors
+      let m: Matrix = this.clone()
       for(let r in this.data) {
          for(let c in this.data[r]) {
-            m.data[c].push(round(this.data[r][c], 15))
+            m.data[c].push(round(this.data[r][c], decimals))
          }
       }
       return m
    }
 
    public transpose(): Matrix {
-      let m: Matrix = new Matrix(this.create(this.size().height))
+      let m: Matrix = this.clone()
       for(let r in this.data) {
          for(let c in this.data[r]) {
             m.data[c].push(this.data[r][c])
@@ -349,12 +357,13 @@ export class Matrix {
       if(this.size().width == 2) {
          return this.raw_det(this.data)
       }
-
-      let dets: number[] = []
       let that = this // we need this in the runner() function
 
       function runner(mat: Matrix) {
          let M = mat.data // shortcut
+         // determinants found in this runner iteration
+         let d: number = 0
+         let c: number = 1 // counter to keep track of the sign
          // run over first row
          for(let i in M[0]) {
             let k: number = M[0][i] // the coefficient
@@ -367,47 +376,25 @@ export class Matrix {
                   }
                }
             }
-            say('new submatrix created:')
-            let str = '\n'
-            for(let j in sub.data) {
-               let r = ''
-               for(let i in sub.data[j]) {
-                  r += `${colorize((sub.data[j][i]).toString(), 'yellow')} `
-               }
-               str += `${r}\n`
-            }
-            say(str)
 
-
+            let dd: number = 0
             if(sub.size().width > 2) {
-               say('running again...')
-               runner(sub) // repeats while submatrix is too large
+               dd = k*runner(sub) // repeats while submatrix is too large
             } else {
-               say('det found', sub.raw_det(sub.data))
-               dets.push(k*sub.raw_det(sub.data))
+               dd = k*sub.raw_det(sub.data)
             }
-         }
-      }
-      runner(this) // start the recursive loooooooo...
 
-      say('all sub determinants found:')
-      console.log(dets)
-      let str = ''
-      say('calculating...')
-      let d: number = 0 // the final determinant
-      for(let dd in dets) {
-         // alternating between + and -
-         if((Number(dd)+1) % 2 == 0) {
-            str += ` - ${dets[dd]}`
-            d -= dets[dd]
-         } else {
-            str += ` + ${dets[dd]}`
-            d += dets[dd]
+            if(c%2 == 0) {
+               d -= dd
+            } else {
+               d += dd
+            }
+            c++
          }
+         return d
       }
-      str += ` = ${d}`
-      say(str)
-      return d
+
+      return runner(this) // start the recursive loooooooo...
    }
 
    // this returns a single minor at a given position
@@ -430,7 +417,7 @@ export class Matrix {
 
    // all the minors in a matrix
    public minors(): Matrix {
-      let m: Matrix = new Matrix(this.create(this.size().height))
+      let m: Matrix = this.clone()
       // calculate each item
       for(let j in this.data) {
          for(let i in this.data[j]) {
@@ -448,7 +435,7 @@ export class Matrix {
 
    // returns a "checkerboarded" matrix
    public checkerboard() {
-      let m: Matrix = new Matrix(this.create(this.size().height))
+      let m: Matrix = this.clone()
       // here we apply a checkerboard to the original
       for(let j in this.data) {
          for(let i in this.data[j]) {
@@ -469,28 +456,26 @@ export class Matrix {
    }
 
    // just a simple multiply-all-items
-   public multiply(k: number): Matrix {
-      let m: Matrix = new Matrix(this.create(this.size().height))
+   public multiply(k: number, decimals: number): Matrix {
+      let m: Matrix = this.clone()
       for(let j in this.data) {
          for(let i in this.data[j]) {
             m.data[j].push(k * this.data[j][i])
          }
       }
-      return m.fix()
+      return m.fix(decimals)
    }
 
    // this returns the inverse of itself, using all the methods above
-   public invert(): Matrix {
+   public invert(decimals?: number): Matrix {
       // 1. step: find matrix of minors
       let m1 = this.minors()
       // 2. step: turn it into the matrix of cofactors
       let m2 = m1.checkerboard()
-      // 3. step: adjugate it
-      let m3 = m2.transpose()
-      // 4. step: remove the original determinant
-      let m4 = m3.multiply(1/this.det())
+      // 3. step: remove the original determinant
+      let m3 = m2.multiply(1/this.det(), decimals || 15)
 
-      return m4
+      return m3
    }
 
    // shows which rows and columns have only zeroes in them
@@ -519,4 +504,66 @@ export class Matrix {
       return free
    }
 
+   // helper for actual product method
+   private vec_prod(other): Matrix {
+      let m: Matrix = this.clone()
+      for(let j in this.data) {
+         for(let i in this.data[j]) {
+            m.data[j].push(this.data[j][i] * other.data[i])
+         }
+      } 
+      return m
+   }
+
+   private mat_prod(other): Matrix {
+      let m: Matrix = this.clone()
+      for(let j in this.data) {
+         for(let i in this.data[j]) {
+            let a: Vector = new Vector(this.data[j])
+            let b: Vector = new Vector(other.transpose().data[i])
+            m.data[j].push(a.dot(b))
+         }
+      } 
+      return m
+   }
+
+   // returns product of mat*mat or mat*vec
+   public product(other: Vector | Matrix): Matrix {
+      switch(type(other)) {
+         case 'Vector': {
+            if(other.size().height !== this.size().width) {
+               err('Sizes do not match!')
+               return this
+            }
+            return this.vec_prod(other)
+         }
+         case 'Matrix': {
+            if(other.size().height !== this.size().width
+                  || other.size().width !== this.size().height) {
+               err('Sizes do not match!')
+               return this
+            }
+            return this.mat_prod(other)
+         }
+      }
+   }
+
+}
+
+// simple Vector class for any sizes
+export class Vector {
+   constructor(public data: number[]) {}
+
+   public size(): dim<number, number> {
+      return { width: 1, height: this.data.length }
+   }
+
+   // the dot-product of two vectors
+   public dot(other: Vector): number {
+      let p: number = 0
+      for(let i in this.data) {
+         p += this.data[i] * other.data[i]
+      }
+      return p
+   }
 }
