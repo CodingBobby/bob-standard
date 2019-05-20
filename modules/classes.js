@@ -14,6 +14,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 exports.__esModule = true;
 var calc_1 = require("./calc");
+var helpers_1 = require("./helpers");
 // VECTORS
 var Vector2D = /** @class */ (function () {
     function Vector2D(x, y) {
@@ -282,82 +283,202 @@ var Line3D = /** @class */ (function () {
     return Line3D;
 }());
 exports.Line3D = Line3D;
-// MATRICES
 var Matrix = /** @class */ (function () {
-    function Matrix(vectors) {
-        if (!this.confirm(vectors)) {
-            console.error('wrong dimensions');
-            return;
-        }
-        var matrix = this.createHelper(vectors.length, vectors[0].length);
-        for (var j in matrix) {
-            for (var i in matrix[j]) {
-                matrix[j][i] = vectors[i][j];
-            }
-        }
-        this.columns = matrix;
-        this.rows = this.transpose();
+    function Matrix(data) {
+        this.data = data;
     }
-    Matrix.prototype.confirm = function (arrays) {
-        var lengths = [];
-        for (var i in arrays) {
-            lengths.push(arrays[i].length);
-        }
-        return calc_1.devi(lengths) === 0;
-    };
-    Matrix.prototype.createHelper = function (width, height, item) {
-        var matrix = [];
-        for (var j = 0; j < height; j++) {
-            matrix.push([]);
-            for (var i = 0; i < width; i++) {
-                var n = 0;
-                if (typeof item == 'function') {
-                    n = item();
-                }
-                else if (typeof item == 'number') {
-                    n = item;
-                }
-                matrix[j].push(n);
+    Matrix.prototype.size = function () {
+        var h = 0;
+        var w = 0;
+        for (var r in this.data) {
+            h++;
+            var curr = 0;
+            for (var i in this.data[r]) {
+                curr++;
+            }
+            if (curr > w) {
+                w = curr;
             }
         }
-        return matrix;
+        return { width: w, height: h };
     };
-    Matrix.create = function (width, height, item) {
-        item = item || 0;
-        function helper(width, height, item) {
-            var matrix = [];
-            for (var j = 0; j < height; j++) {
-                matrix.push([]);
-                for (var i = 0; i < width; i++) {
-                    var n = 0;
-                    if (typeof item == 'function') {
-                        n = item();
-                    }
-                    else if (typeof item == 'number') {
-                        n = item;
-                    }
-                    matrix[j].push(n);
-                }
-            }
-            return matrix;
+    Matrix.prototype.create = function (height) {
+        var mat = [];
+        for (var r = 0; r < height; r++) {
+            mat.push([]);
         }
-        var tmp = new Matrix(helper(width, height, item));
-        return new Matrix(tmp.transpose());
+        return mat;
+    };
+    Matrix.prototype.fix = function () {
+        var m = new Matrix(this.create(this.size().height));
+        for (var r in this.data) {
+            for (var c in this.data[r]) {
+                m.data[c].push(calc_1.round(this.data[r][c], 15));
+            }
+        }
+        return m;
     };
     Matrix.prototype.transpose = function () {
-        var n = [];
-        var m = this.columns;
-        var l = m[0].length;
-        for (var i = 0; i < l; i++) {
-            n.push([]);
-        }
-        for (var j in m) {
-            for (var i in m[j]) {
-                n[i].push(m[j][i]);
+        var m = new Matrix(this.create(this.size().height));
+        for (var r in this.data) {
+            for (var c in this.data[r]) {
+                m.data[c].push(this.data[r][c]);
             }
         }
-        return n;
+        return m;
     };
+    // finds det of 2x2 matrix, used in public det()
+    Matrix.prototype.raw_det = function (mat) {
+        var l = mat[0][0] * mat[1][1];
+        var r = mat[0][1] * mat[1][0];
+        return l - r;
+    };
+    Matrix.prototype.det = function () {
+        if (this.size().width !== this.size().height) {
+            helpers_1.err('Matrix must be square!');
+            return undefined;
+        }
+        // if matrix is already 2x2, so we don't need the stuff below
+        if (this.size().width == 2) {
+            return this.raw_det(this.data);
+        }
+        var dets = [];
+        var that = this; // we need this in the runner() function
+        function runner(mat) {
+            var M = mat.data; // shortcut
+            // run over first row
+            for (var i in M[0]) {
+                var k = M[0][i]; // the coefficient
+                var sub = new Matrix(that.create(M.length - 1));
+                // now add items to the submatrix
+                for (var r = 1; r < M.length; r++) { // start in second row
+                    for (var j = 0; j < M[r].length; j++) {
+                        if (j !== Number(i)) {
+                            sub.data[r - 1].push(M[r][j]);
+                        }
+                    }
+                }
+                helpers_1.say('new submatrix created:');
+                var str_1 = '\n';
+                for (var j in sub.data) {
+                    var r = '';
+                    for (var i_1 in sub.data[j]) {
+                        r += helpers_1.colorize((sub.data[j][i_1]).toString(), 'yellow') + " ";
+                    }
+                    str_1 += r + "\n";
+                }
+                helpers_1.say(str_1);
+                if (sub.size().width > 2) {
+                    helpers_1.say('running again...');
+                    runner(sub); // repeats while submatrix is too large
+                }
+                else {
+                    helpers_1.say('det found', sub.raw_det(sub.data));
+                    dets.push(k * sub.raw_det(sub.data));
+                }
+            }
+        }
+        runner(this); // start the recursive loooooooo...
+        helpers_1.say('all sub determinants found:');
+        console.log(dets);
+        var str = '';
+        helpers_1.say('calculating...');
+        var d = 0; // the final determinant
+        for (var dd in dets) {
+            // alternating between + and -
+            if ((Number(dd) + 1) % 2 == 0) {
+                str += " - " + dets[dd];
+                d -= dets[dd];
+            }
+            else {
+                str += " + " + dets[dd];
+                d += dets[dd];
+            }
+        }
+        str += " = " + d;
+        helpers_1.say(str);
+        return d;
+    };
+    // this returns a single minor at a given position
+    Matrix.prototype.minor = function (posX, posY) {
+        var sub = new Matrix(this.create(this.size().height - 1));
+        var c = 0; // counter for y-position in new submatrix
+        for (var j in this.data) {
+            for (var i in this.data[j]) {
+                if (Number(j) !== posY && Number(i) !== posX) {
+                    sub.data[c].push(this.data[j][i]);
+                }
+            }
+            // clip y-position to new height
+            if (Number(j) !== posY) {
+                c++;
+            }
+        }
+        return sub.det();
+    };
+    // all the minors in a matrix
+    Matrix.prototype.minors = function () {
+        var m = new Matrix(this.create(this.size().height));
+        // calculate each item
+        for (var j in this.data) {
+            for (var i in this.data[j]) {
+                var min = this.minor(Number(i), Number(j));
+                if (min == -0) { // fix weird -0 issue
+                    m.data[j].push(0);
+                }
+                else {
+                    m.data[j].push(min);
+                }
+            }
+        }
+        return m;
+    };
+    // returns a "checkerboarded" matrix
+    Matrix.prototype.checkerboard = function () {
+        var m = new Matrix(this.create(this.size().height));
+        // here we apply a checkerboard to the original
+        for (var j in this.data) {
+            for (var i in this.data[j]) {
+                var x = Number(i);
+                var y = Number(j);
+                if (this.data[j][i] !== 0) { // ignore zeroes
+                    if (x % 2 == 0 && y % 2 == 0 || x % 2 !== 0 && y % 2 !== 0) {
+                        m.data[j].push(this.data[j][i]);
+                    }
+                    else {
+                        m.data[j].push(-this.data[j][i]);
+                    }
+                }
+                else {
+                    m.data[j].push(this.data[j][i]);
+                }
+            }
+        }
+        return m;
+    };
+    // just a simple multiply-all-items
+    Matrix.prototype.multiply = function (k) {
+        var m = new Matrix(this.create(this.size().height));
+        for (var j in this.data) {
+            for (var i in this.data[j]) {
+                m.data[j].push(k * this.data[j][i]);
+            }
+        }
+        return m.fix();
+    };
+    // this returns the inverse of itself, using all the methods above
+    Matrix.prototype.invert = function () {
+        // 1. step: find matrix of minors
+        var m1 = this.minors();
+        // 2. step: turn it into the matrix of cofactors
+        var m2 = m1.checkerboard();
+        // 3. step: adjugate it
+        var m3 = m2.transpose();
+        // 4. step: remove the original determinant
+        var m4 = m3.multiply(1 / this.det());
+        return m4;
+    };
+    // shows which rows and columns have only zeroes in them
     Matrix.prototype.getfree = function () {
         var free = {
             columns: [],
@@ -377,8 +498,8 @@ var Matrix = /** @class */ (function () {
             }
             return frees;
         }
-        free.columns = helper(this.columns);
-        free.rows = helper(this.rows);
+        free.columns = helper(this.data);
+        free.rows = helper(this.transpose().data);
         return free;
     };
     return Matrix;
