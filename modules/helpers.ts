@@ -1,10 +1,16 @@
 // some functions from other modules we'll need here
-import { gcd, smti, max } from './calc'
-import { array } from './creators'
+import { gcd, smti, max, round } from './calc'
+import { array, string } from './creators'
+import { colorName } from './types'
 
-// returns a random float (!) in the range 'from' - 'to' which both are inclusive
-export function rand(from: number, to: number): number {
-   return Math.random() * (to - from) + from
+// returns a random float (!) in the range 'from' - 'to' which both are
+// inclusive, if optional int-argument is provided, an integer will be returned
+export function rand(from: number, to: number, int?: 1): number {
+   let r = Math.random() * (to - from) + from
+   if(int) {
+      r = round(r)
+   }
+   return r
 }
 
 // returns a deep copy of the inserted object of any (!) type
@@ -180,6 +186,66 @@ function sayHelper(t,v) {
 
 function sayError(t) {
    say('\x1b[41m\x1b[36m'+t+'\x1b[0m')
+}
+
+export function colorize(text: string, color: colorName, background?: colorName) {
+   let eStart: String = '\x1b['
+   let eReset: String = '\x1b[0m'
+   let eID: String = ''
+   switch(color) {
+      case 'red': {
+         eID += '31'
+         break
+      }
+      case 'green': {
+         eID += '32'
+         break
+      }
+      case 'yellow': {
+         eID += '33'
+         break
+      }
+      case 'blue': {
+         eID += '34'
+         break
+      }
+      case 'magenta': {
+         eID += '35'
+         break
+      }
+      case 'white': {
+         eID += '37'
+         break
+      }
+   }
+   switch(background) {
+      case 'red': {
+         eID += ';41'
+         break
+      }
+      case 'green': {
+         eID += ';42'
+         break
+      }
+      case 'yellow': {
+         eID += ';43'
+         break
+      }
+      case 'blue': {
+         eID += ';44'
+         break
+      }
+      case 'magenta': {
+         eID += ';45'
+         break
+      }
+      case 'white': {
+         eID += ';47'
+         break
+      }
+      default: {break}
+   }
+   return ''+eStart+eID+'m'+text+eReset
 }
 
 // returns a string containing the item value surrounded by colorcodes
@@ -362,14 +428,14 @@ export function printArray(input, name?: string) {
 
    // these are the characters we use to create the tree
    // let box: string = '\u25A7'
-   let hor: string = '\x1b[1;37m\u2500\x1b[0m'
-   let ver: string = '\x1b[1;37m\u2502\x1b[0m'
-   let ver_right: string = '\x1b[1;37m\u251C\x1b[0m'
-   let hor_down: string = '\x1b[1;37m\u252C\x1b[0m'
+   let hor: string        = '\x1b[1;37m\u2500\x1b[0m'
+   let ver: string        = '\x1b[1;37m\u2502\x1b[0m'
+   let ver_right: string  = '\x1b[1;37m\u251C\x1b[0m'
+   let hor_down: string   = '\x1b[1;37m\u252C\x1b[0m'
    let down_right: string = '\x1b[1;37m\u2514\x1b[0m'
-   let box = `\x1b[1;31m\u25A7\x1b[0m`
-   let box_start = `${box}`
-   let box_node = `${hor_down} ${box}`
+   let box: string        = `\x1b[1;31m\u25A7\x1b[0m`
+   let box_start: string  = `${box}`
+   let box_node: string   = `${hor_down} ${box}`
 
    // the actual line we're on
    let lc: number = 0
@@ -477,4 +543,85 @@ export function printArray(input, name?: string) {
 export function objIndex(array: Object[], property: string, value: string): number {
    // by German Attanasio
    return array.map(e => e[property]).indexOf(value)
+}
+
+
+// this function takes two arrays which then will be printed to the console
+// side by side in a table, which height can be manually fixed. If both arrays
+// are shorter than the given size of the table, it will not extend above the array length
+export function printTable(first: string[] | number[], second: string[] | number[], length: number) {
+   // this function actually builds the table
+   function tableBuilder(arrToList, itemCount) {
+      let size: number = (arrToList.length < itemCount)
+         ? arrToList.length
+         : itemCount
+      
+      const header1 = 'no.'
+      const header2 = 'first'
+      const header3 = 'second'
+      let list = '',
+         a = 1,
+         b = 1,
+         c = 0,
+         g = 1,
+         h = 1,
+         i = 1
+   
+      // search for longest word in objToList
+      let longestWord = 0
+      for(let x=0; x<size; x++)
+         longestWord = (arrToList[x][0].length > longestWord)
+            ? arrToList[x][0].length
+            : longestWord
+   
+      // format first collumn header
+      while(size.toString().length + g + 2 > header1.length + a)
+         a++
+      let d: number = header1.length + a
+   
+      // format second collumn header
+      while(longestWord + h + 1 > 1 + header2.length + b)
+         b++
+      let e: number = 1 + header2.length + b
+   
+      // format third collumn header
+      while(i + arrToList[0][1].toString().length + 1 > 1 + header3.length + c)
+         c++
+      let f: number = 1 + header3.length + c
+   
+      // format list, loop through every line
+      for(let n=0; n<size; n++) {
+         let rank: number = n + 1
+   
+         while(g + rank.toString().length + 1 < header1.length + a)
+            g++
+         while(1 + arrToList[n][0].length + h < 1 + header2.length + b)
+            h++
+         while(i + arrToList[n][1].toString().length + 1 < 1 + header3.length + c)
+            i++
+
+         list += `${string(g, " ")}${rank} | ${arrToList[n][0]}${string(h, " ")}|${string(i, " ")}${arrToList[n][1]} `
+         if(rank < size)
+            list += `\n`
+
+         g = 1
+         h = 1
+         i = 1
+      }
+   
+      // format header and header line
+      let header: string = `${header1}${string(a, " ")}| ${header2}${string(b, " ")}| ${header3}${string(c, " ")}`
+      let line: string   = `${string(d, "-")}|${string(e, "-")}|${string(f, "-")}`
+   
+      // put table parts together and return it
+      return `${header}\n${line}\n${list}`
+   }
+ 
+   let tableArray = []
+   first.forEach(x => {
+      tableArray.push([x, second[x]])
+   })
+
+   // call build function and log whole thing to the console
+   console.log('\n' + tableBuilder(tableArray, length))
 }

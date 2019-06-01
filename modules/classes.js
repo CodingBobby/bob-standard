@@ -488,17 +488,24 @@ var Matrix = /** @class */ (function () {
         free.rows = helper(this.transpose().data);
         return free;
     };
-    // helper for actual product method
     Matrix.prototype.vec_prod = function (other) {
-        var m = this.clone();
+        if (other.size().height !== this.size().width) {
+            helpers_1.err('Sizes do not match!');
+            return;
+        }
+        var m = new Vector([]);
         for (var j in this.data) {
-            for (var i in this.data[j]) {
-                m.data[j].push(this.data[j][i] * other.data[i]);
-            }
+            var jv = new Vector(this.data[j]);
+            m.data.push(jv.dot(other));
         }
         return m;
     };
     Matrix.prototype.mat_prod = function (other) {
+        if (other.size().height !== this.size().width
+            || other.size().width !== this.size().height) {
+            helpers_1.err('Sizes do not match!');
+            return;
+        }
         var m = this.clone();
         for (var j in this.data) {
             for (var i in this.data[j]) {
@@ -508,26 +515,6 @@ var Matrix = /** @class */ (function () {
             }
         }
         return m;
-    };
-    // returns product of mat*mat or mat*vec
-    Matrix.prototype.product = function (other) {
-        switch (helpers_1.type(other)) {
-            case 'Vector': {
-                if (other.size().height !== this.size().width) {
-                    helpers_1.err('Sizes do not match!');
-                    return this;
-                }
-                return this.vec_prod(other);
-            }
-            case 'Matrix': {
-                if (other.size().height !== this.size().width
-                    || other.size().width !== this.size().height) {
-                    helpers_1.err('Sizes do not match!');
-                    return this;
-                }
-                return this.mat_prod(other);
-            }
-        }
     };
     return Matrix;
 }());
@@ -548,6 +535,91 @@ var Vector = /** @class */ (function () {
         }
         return p;
     };
+    // used for polynomic regression
+    /**
+     * uses this Vector instance as a independent dataset to generate a Vandermonde matrix
+     */
+    Vector.prototype.design = function () {
+        var vm = [];
+        for (var i = 0; i < this.size().height; i++) {
+            // creates matrix with same height as this Vector
+            vm.push([]);
+            for (var d = 0; d < this.size().height; d++) {
+                if (d == 0) {
+                    // the first column always becomes 1 as it
+                    // would have a power of 0, so to save computation
+                    // time, we simply push the 1
+                    vm[i].push(1);
+                }
+                else {
+                    // now we insert the data powered to it's index
+                    vm[i].push(Math.pow(this.data[i], d));
+                }
+            }
+        }
+        // create a new Matrix instance from above and return it
+        return new Matrix(vm);
+    };
+    // used for polynomic regression
+    /**
+     * takes a dataset of dependent values in form of a Vector
+     */
+    Vector.prototype.reg_coeff = function (dependent) {
+        // the Vandermonde design matrix we will work with
+        var vand = this.design();
+        // following steps compute the vector of regression coefficients
+        // 1. we transpose the Vandermonde matrix
+        var m1 = vand.transpose();
+        // 2. find the transposal cross product
+        var m2 = m1.mat_prod(vand);
+        // 3. this inverts the whole thing with maximum accuracy
+        var m3 = m2.invert(100);
+        // 4. now we use the transpose again
+        var m4 = m3.mat_prod(m1);
+        // here we finally insert the dependent dataset
+        return m4.vec_prod(dependent);
+    };
     return Vector;
 }());
 exports.Vector = Vector;
+// class for regression, at creation, it takes the data samples for the dependent and independent values
+// then the regression can be calculated
+/**
+ * USAGE:
+ * let data = new Dataset([], [])
+ * let reg  = new Regression(data)
+ */
+var Regression = /** @class */ (function () {
+    // this only takes the data in form of a Dataset instance,
+    // calculation must be done manually
+    function Regression(data) {
+        this.data = data;
+    }
+    // this runs the actual regression
+    Regression.prototype.calculate = function (order) {
+        var indep = new Vector(this.data.independent);
+        var dep = new Vector(this.data.dependent);
+        var coeff = indep.reg_coeff(dep);
+        if (order > coeff.size().height) {
+            helpers_1.err('Requested order cannot be computed! ');
+            return undefined;
+        }
+    };
+    // with this the calculated regression can be used,
+    // returns the corresponding y-value by applying the polynomic function
+    Regression.prototype.predict = function (independent) {
+    };
+    // gives the R^2 ~~goodness~~ goddess coefficient
+    Regression.prototype.r2 = function () {
+    };
+    return Regression;
+}());
+exports.Regression = Regression;
+var Dataset = /** @class */ (function () {
+    function Dataset(dependent, independent) {
+        this.dependent = dependent;
+        this.independent = independent;
+    }
+    return Dataset;
+}());
+exports.Dataset = Dataset;

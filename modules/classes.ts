@@ -504,18 +504,25 @@ export class Matrix {
       return free
    }
 
-   // helper for actual product method
-   private vec_prod(other): Matrix {
-      let m: Matrix = this.clone()
+   public vec_prod(other): Vector {
+      if(other.size().height !== this.size().width) {
+         err('Sizes do not match!')
+         return
+      }
+      let m: Vector = new Vector([])
       for(let j in this.data) {
-         for(let i in this.data[j]) {
-            m.data[j].push(this.data[j][i] * other.data[i])
-         }
+         let jv: Vector = new Vector(this.data[j])
+         m.data.push(jv.dot(other))
       } 
       return m
    }
 
-   private mat_prod(other): Matrix {
+   public mat_prod(other): Matrix {
+      if(other.size().height !== this.size().width
+            || other.size().width !== this.size().height) {
+         err('Sizes do not match!')
+         return
+      }
       let m: Matrix = this.clone()
       for(let j in this.data) {
          for(let i in this.data[j]) {
@@ -525,27 +532,6 @@ export class Matrix {
          }
       } 
       return m
-   }
-
-   // returns product of mat*mat or mat*vec
-   public product(other: Vector | Matrix): Matrix {
-      switch(type(other)) {
-         case 'Vector': {
-            if(other.size().height !== this.size().width) {
-               err('Sizes do not match!')
-               return this
-            }
-            return this.vec_prod(other)
-         }
-         case 'Matrix': {
-            if(other.size().height !== this.size().width
-                  || other.size().width !== this.size().height) {
-               err('Sizes do not match!')
-               return this
-            }
-            return this.mat_prod(other)
-         }
-      }
    }
 
 }
@@ -566,4 +552,95 @@ export class Vector {
       }
       return p
    }
+
+   // used for polynomic regression
+   /**
+    * uses this Vector instance as a independent dataset to generate a Vandermonde matrix
+    */
+   public design(): Matrix {
+      let vm = []
+      for(let i=0; i<this.size().height; i++) {
+         // creates matrix with same height as this Vector
+         vm.push([])
+         for(let d=0; d<this.size().height; d++) {
+            if(d == 0) {
+               // the first column always becomes 1 as it
+               // would have a power of 0, so to save computation
+               // time, we simply push the 1
+               vm[i].push(1)
+            } else {
+               // now we insert the data powered to it's index
+               vm[i].push(Math.pow(this.data[i], d))
+            }
+         }
+      }
+      // create a new Matrix instance from above and return it
+      return new Matrix(vm)
+   }
+
+   // used for polynomic regression
+   /**
+    * takes a dataset of dependent values in form of a Vector
+    */
+   public reg_coeff(dependent: Vector): Vector {
+      // the Vandermonde design matrix we will work with
+      let vand: Matrix = this.design()
+
+      // following steps compute the vector of regression coefficients
+      // 1. we transpose the Vandermonde matrix
+      let m1: Matrix = vand.transpose()
+      // 2. find the transposal cross product
+      let m2: Matrix = m1.mat_prod(vand)
+      // 3. this inverts the whole thing with maximum accuracy
+      let m3: Matrix = m2.invert(100)
+      // 4. now we use the transpose again
+      let m4: Matrix = m3.mat_prod(m1)
+
+      // here we finally insert the dependent dataset
+      return m4.vec_prod(dependent)
+   }
+
+}
+
+
+// class for regression, at creation, it takes the data samples for the dependent and independent values
+// then the regression can be calculated
+/**
+ * USAGE:
+ * let data = new Dataset([], [])
+ * let reg  = new Regression(data)
+ */
+export class Regression {
+   // this only takes the data in form of a Dataset instance,
+   // calculation must be done manually
+   constructor(public data: Dataset) {}
+
+   // this runs the actual regression
+   public calculate(order: number) {
+      let indep = new Vector(this.data.independent)
+      let dep = new Vector(this.data.dependent)
+
+      let coeff = indep.reg_coeff(dep)
+
+      if(order > coeff.size().height) {
+         err('Requested order cannot be computed! ')
+         return undefined
+      }
+   }
+
+   // with this the calculated regression can be used,
+   // returns the corresponding y-value by applying the polynomic function
+   public predict(independent: number) {
+
+   }
+
+   // gives the R^2 ~~goodness~~ goddess coefficient
+   public r2() {
+
+   }
+}
+
+
+export class Dataset {
+   constructor(public dependent: number[], public independent: number[]) {}
 }

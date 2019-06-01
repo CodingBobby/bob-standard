@@ -3,9 +3,14 @@ exports.__esModule = true;
 // some functions from other modules we'll need here
 var calc_1 = require("./calc");
 var creators_1 = require("./creators");
-// returns a random float (!) in the range 'from' - 'to' which both are inclusive
-function rand(from, to) {
-    return Math.random() * (to - from) + from;
+// returns a random float (!) in the range 'from' - 'to' which both are
+// inclusive, if optional int-argument is provided, an integer will be returned
+function rand(from, to, int) {
+    var r = Math.random() * (to - from) + from;
+    if (int) {
+        r = calc_1.round(r);
+    }
+    return r;
 }
 exports.rand = rand;
 // returns a deep copy of the inserted object of any (!) type
@@ -174,6 +179,68 @@ function sayHelper(t, v) {
 function sayError(t) {
     say('\x1b[41m\x1b[36m' + t + '\x1b[0m');
 }
+function colorize(text, color, background) {
+    var eStart = '\x1b[';
+    var eReset = '\x1b[0m';
+    var eID = '';
+    switch (color) {
+        case 'red': {
+            eID += '31';
+            break;
+        }
+        case 'green': {
+            eID += '32';
+            break;
+        }
+        case 'yellow': {
+            eID += '33';
+            break;
+        }
+        case 'blue': {
+            eID += '34';
+            break;
+        }
+        case 'magenta': {
+            eID += '35';
+            break;
+        }
+        case 'white': {
+            eID += '37';
+            break;
+        }
+    }
+    switch (background) {
+        case 'red': {
+            eID += ';41';
+            break;
+        }
+        case 'green': {
+            eID += ';42';
+            break;
+        }
+        case 'yellow': {
+            eID += ';43';
+            break;
+        }
+        case 'blue': {
+            eID += ';44';
+            break;
+        }
+        case 'magenta': {
+            eID += ';45';
+            break;
+        }
+        case 'white': {
+            eID += ';47';
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+    return '' + eStart + eID + 'm' + text + eReset;
+}
+exports.colorize = colorize;
 // returns a string containing the item value surrounded by colorcodes
 // according to their value type, optional toColor can be another item
 // which type will be checked instead while returning the value of the
@@ -443,3 +510,64 @@ function objIndex(array, property, value) {
     return array.map(function (e) { return e[property]; }).indexOf(value);
 }
 exports.objIndex = objIndex;
+// this function takes two arrays which then will be printed to the console
+// side by side in a table, which height can be manually fixed. If both arrays
+// are shorter than the given size of the table, it will not extend above the array length
+function printTable(first, second, length) {
+    // this function actually builds the table
+    function tableBuilder(arrToList, itemCount) {
+        var size = (arrToList.length < itemCount)
+            ? arrToList.length
+            : itemCount;
+        var header1 = 'no.';
+        var header2 = 'first';
+        var header3 = 'second';
+        var list = '', a = 1, b = 1, c = 0, g = 1, h = 1, i = 1;
+        // search for longest word in objToList
+        var longestWord = 0;
+        for (var x = 0; x < size; x++)
+            longestWord = (arrToList[x][0].length > longestWord)
+                ? arrToList[x][0].length
+                : longestWord;
+        // format first collumn header
+        while (size.toString().length + g + 2 > header1.length + a)
+            a++;
+        var d = header1.length + a;
+        // format second collumn header
+        while (longestWord + h + 1 > 1 + header2.length + b)
+            b++;
+        var e = 1 + header2.length + b;
+        // format third collumn header
+        while (i + arrToList[0][1].toString().length + 1 > 1 + header3.length + c)
+            c++;
+        var f = 1 + header3.length + c;
+        // format list, loop through every line
+        for (var n = 0; n < size; n++) {
+            var rank = n + 1;
+            while (g + rank.toString().length + 1 < header1.length + a)
+                g++;
+            while (1 + arrToList[n][0].length + h < 1 + header2.length + b)
+                h++;
+            while (i + arrToList[n][1].toString().length + 1 < 1 + header3.length + c)
+                i++;
+            list += "" + creators_1.string(g, " ") + rank + " | " + arrToList[n][0] + creators_1.string(h, " ") + "|" + creators_1.string(i, " ") + arrToList[n][1] + " ";
+            if (rank < size)
+                list += "\n";
+            g = 1;
+            h = 1;
+            i = 1;
+        }
+        // format header and header line
+        var header = "" + header1 + creators_1.string(a, " ") + "| " + header2 + creators_1.string(b, " ") + "| " + header3 + creators_1.string(c, " ");
+        var line = creators_1.string(d, "-") + "|" + creators_1.string(e, "-") + "|" + creators_1.string(f, "-");
+        // put table parts together and return it
+        return header + "\n" + line + "\n" + list;
+    }
+    var tableArray = [];
+    first.forEach(function (x) {
+        tableArray.push([x, second[x]]);
+    });
+    // call build function and log whole thing to the console
+    console.log('\n' + tableBuilder(tableArray, length));
+}
+exports.printTable = printTable;
