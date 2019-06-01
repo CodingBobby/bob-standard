@@ -8,53 +8,50 @@ var configurator_1 = require("./configurator");
 // you can use angleMode() from the configurator module
 function sin(x) {
     var y = configurator_1.config.maths.aMode == 'RAD' ? x : x * constants_1.pi / 180;
-    return Math.sin(y);
+    return fix(Math.sin(y));
 }
 exports.sin = sin;
 function cos(x) {
     var y = configurator_1.config.maths.aMode == 'RAD' ? x : x * constants_1.pi / 180;
-    return Math.cos(y);
+    return fix(Math.cos(y));
 }
 exports.cos = cos;
 function tan(x) {
     var y = configurator_1.config.maths.aMode == 'RAD' ? x : x * constants_1.pi / 180;
-    return Math.tan(y);
+    return fix(Math.tan(y));
 }
 exports.tan = tan;
 function asin(x) {
-    var y = configurator_1.config.maths.aMode == 'RAD' ? x : x * constants_1.pi / 180;
-    return Math.asin(y);
+    return fix(Math.asin(x));
 }
 exports.asin = asin;
 function acos(x) {
-    var y = configurator_1.config.maths.aMode == 'RAD' ? x : x * constants_1.pi / 180;
-    return Math.acos(y);
+    return fix(Math.acos(x));
 }
 exports.acos = acos;
 function atan(x) {
-    var y = configurator_1.config.maths.aMode == 'RAD' ? x : x * constants_1.pi / 180;
-    return Math.atan(y);
+    return fix(Math.atan(x));
 }
 exports.atan = atan;
 function sinh(x) {
     var y = configurator_1.config.maths.aMode == 'RAD' ? x : x * constants_1.pi / 180;
-    return Math.sinh(y);
+    return fix(Math.sinh(y));
 }
 exports.sinh = sinh;
 function cosh(x) {
     var y = configurator_1.config.maths.aMode == 'RAD' ? x : x * constants_1.pi / 180;
-    return Math.cosh(y);
+    return fix(Math.cosh(y));
 }
 exports.cosh = cosh;
 function tanh(x) {
     var y = configurator_1.config.maths.aMode == 'RAD' ? x : x * constants_1.pi / 180;
-    return Math.tanh(y);
+    return fix(Math.tanh(y));
 }
 exports.tanh = tanh;
 // improved logarithm function, accepts an oprional base
 // default base is e but can be changed to anything
 function log(x, base) {
-    return Math.log(x) / (base ? Math.log(base) : 1);
+    return fix(Math.log(x) / (base ? Math.log(base) : 1));
 }
 exports.log = log;
 // rounds floats to a given number of digits after the decimal point
@@ -64,6 +61,16 @@ function round(x, digits) {
     return Number(x.toFixed(digits));
 }
 exports.round = round;
+// floors a float to an integer
+function floor(x) {
+    return (round(x) - x < 0) ? round(x) : round(x - 0.5);
+}
+exports.floor = floor;
+// ceils a float to an integer
+function ceil(x) {
+    return (round(x) - x > 0) ? round(x) : round(x + 0.5);
+}
+exports.ceil = ceil;
 // sums up the numbers in an array
 function sum(items) {
     var s = 0;
@@ -112,16 +119,19 @@ function smti(x) {
     }
 }
 exports.smti = smti;
+// find mean value of number array (average)
 function mean(items) {
     return sum(items) / items.length;
 }
 exports.mean = mean;
+// find median of number array
 function medi(items) {
     var a = min(items);
     var b = max(items);
     return (a + b) / 2;
 }
 exports.medi = medi;
+// find maximum difference to mean value
 function devi(items) {
     var m = mean(items);
     var a = m - min(items);
@@ -129,12 +139,14 @@ function devi(items) {
     return a > b ? a : b;
 }
 exports.devi = devi;
+// finds minimum value of number array
 function min(items) {
     var m = items[0];
     items.forEach(function (e) { return e < m ? m = e : m; });
     return m;
 }
 exports.min = min;
+// finds maximum value of number array
 function max(items) {
     var m = items[0];
     items.forEach(function (e) { return e > m ? m = e : m; });
@@ -160,8 +172,7 @@ function normDist(x, calc) {
         var factor = 1 / Math.sqrt(2 * constants_1.pi);
         var erfx = erf(x / constants_1.r2);
         var root = Math.sqrt(constants_1.pi / 2);
-        var dist = factor * root * (erfx + 1);
-        return dist;
+        return factor * root * (erfx + 1);
     }
     else {
         if (x > 1 && x <= 4) {
@@ -204,10 +215,10 @@ function erf(x, approx) {
         var xs = Math.pow(x, 2);
         var ex = Math.exp(-xs);
         var sum1 = a1 * t;
-        var sum2 = a2 * (Math.pow(t, 2));
-        var sum3 = a3 * (Math.pow(t, 3));
-        var sum4 = a4 * (Math.pow(t, 4));
-        var sum5 = a5 * (Math.pow(t, 5));
+        var sum2 = a2 * Math.pow(t, 2);
+        var sum3 = a3 * Math.pow(t, 3);
+        var sum4 = a4 * Math.pow(t, 4);
+        var sum5 = a5 * Math.pow(t, 5);
         var sum_1 = sum1 + sum2 + sum3 + sum4 + sum5;
         var term = sum_1 * ex;
         return 1 - term;
@@ -232,3 +243,28 @@ function erf(x, approx) {
     }
 }
 exports.erf = erf;
+// PRIVATE helpers for this module
+// rounds small numbers to 10^-15
+function fix(x) {
+    return round(x, 15);
+}
+// returns the slope of a line
+function lin_m(x1, y1, x2, y2) {
+    return (y2 - y1) / (x2 - x1);
+}
+exports.lin_m = lin_m;
+// returns y-axis offset of linear equation that runs
+// through the points (x1, y1) and (x2, y2)
+function lin_b(x1, y1, x2, y2) {
+    var m = lin_m(x1, y1, x2, y2);
+    return y1 - (m * x1);
+}
+exports.lin_b = lin_b;
+// returns y-value for input x-value for a line between
+// (x1, y1) and (x2, y2)
+function lin(x, x1, y1, x2, y2) {
+    var m = lin_m(x1, y1, x2, y2);
+    var b = lin_b(x1, y1, x2, y2);
+    return m * x + b;
+}
+exports.lin = lin;

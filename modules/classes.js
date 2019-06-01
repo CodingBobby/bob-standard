@@ -221,17 +221,17 @@ var Angle = /** @class */ (function () {
 var Angle2D = /** @class */ (function (_super) {
     __extends(Angle2D, _super);
     function Angle2D(x, y, isPiFrac) {
-        var _this = _super.call(this) || this;
+        var _this_1 = _super.call(this) || this;
         isPiFrac = isPiFrac || 0;
         if (isPiFrac === 1) {
-            _this.a = _this.toRAD(x);
-            _this.b = _this.toRAD(y);
+            _this_1.a = _this_1.toRAD(x);
+            _this_1.b = _this_1.toRAD(y);
         }
         else {
-            _this.a = _this.toDRG(x);
-            _this.b = _this.toDRG(y);
+            _this_1.a = _this_1.toDRG(x);
+            _this_1.b = _this_1.toDRG(y);
         }
-        return _this;
+        return _this_1;
     }
     return Angle2D;
 }(Angle));
@@ -239,19 +239,19 @@ exports.Angle2D = Angle2D;
 var Angle3D = /** @class */ (function (_super) {
     __extends(Angle3D, _super);
     function Angle3D(x, y, z, isPiFrac) {
-        var _this = _super.call(this) || this;
+        var _this_1 = _super.call(this) || this;
         isPiFrac = isPiFrac || 0;
         if (isPiFrac === 1) {
-            _this.a = _this.toRAD(x);
-            _this.b = _this.toRAD(y);
-            _this.c = _this.toRAD(z);
+            _this_1.a = _this_1.toRAD(x);
+            _this_1.b = _this_1.toRAD(y);
+            _this_1.c = _this_1.toRAD(z);
         }
         else {
-            _this.a = _this.toDRG(x);
-            _this.b = _this.toDRG(y);
-            _this.c = _this.toDRG(z);
+            _this_1.a = _this_1.toDRG(x);
+            _this_1.b = _this_1.toDRG(y);
+            _this_1.c = _this_1.toDRG(z);
         }
-        return _this;
+        return _this_1;
     }
     return Angle3D;
 }(Angle));
@@ -270,6 +270,11 @@ var Line2D = /** @class */ (function () {
                 * this.to.rotation(other.from, other.to) < 0
             : false;
     };
+    Line2D.prototype.slope = function () {
+        var den = this.dir.y - this.pos.y;
+        var nom = this.dir.x - this.pos.x;
+        return den / nom;
+    };
     return Line2D;
 }());
 exports.Line2D = Line2D;
@@ -280,6 +285,35 @@ var Line3D = /** @class */ (function () {
         this.dir = to.sub(from, 1);
         this.pos = from.clone();
     }
+    Line3D.prototype.slope = function (through) {
+        var _this = this;
+        var sl;
+        // this calculates the slope and takes the axis names
+        function calc(ax1, ax2) {
+            // first we map the existing start and end position of _this onto a 2D version by ignoring the third axis, we're looking from
+            var vpos = new Vector2D(_this.pos[ax1], _this.pos[ax2]);
+            var vdir = new Vector2D(_this.dir[ax1], _this.dir[ax2]);
+            // then we create a new 2D line from it and return it's slope
+            var line = new Line2D(vpos, vdir);
+            return line.slope();
+        }
+        // here we check which axis was entered and calculate the corresponding slope
+        switch (through) {
+            case 'x': {
+                sl = calc('y', 'z');
+                break;
+            }
+            case 'y': {
+                sl = calc('z', 'x');
+                break;
+            }
+            case 'z': {
+                sl = calc('x', 'y');
+                break;
+            }
+        }
+        return sl;
+    };
     return Line3D;
 }());
 exports.Line3D = Line3D;

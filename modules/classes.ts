@@ -1,5 +1,6 @@
-import { devi, round } from './calc'
-import { err, say, printArray, colorize, type } from './helpers'
+import { round } from './calc'
+import { err } from './helpers'
+import { axis } from './types'
 
 // VECTORS
 
@@ -268,6 +269,12 @@ export class Line2D {
             * this.to.rotation(other.from, other.to) < 0
          : false
    }
+
+   public slope(): number {
+      let den: number = this.dir.y - this.pos.y
+      let nom: number = this.dir.x - this.pos.x
+      return den/nom
+   }
 }
 
 export class Line3D {
@@ -277,6 +284,36 @@ export class Line3D {
    constructor(public from: Vector3D, public to: Vector3D) {
       this.dir = to.sub(from, 1)
       this.pos = from.clone()
+   }
+
+   public slope(through: axis): number {
+      let _this = this
+      let sl: number
+      // this calculates the slope and takes the axis names
+      function calc(ax1: axis, ax2: axis) {
+         // first we map the existing start and end position of _this onto a 2D version by ignoring the third axis, we're looking from
+         let vpos = new Vector2D(_this.pos[ax1], _this.pos[ax2])
+         let vdir = new Vector2D(_this.dir[ax1], _this.dir[ax2])
+         // then we create a new 2D line from it and return it's slope
+         let line = new Line2D(vpos, vdir)
+         return line.slope()
+      }
+      // here we check which axis was entered and calculate the corresponding slope
+      switch(through) {
+         case 'x': {
+            sl = calc('y', 'z')
+            break
+         }
+         case 'y': {
+            sl = calc('z', 'x')
+            break
+         }
+         case 'z': {
+            sl = calc('x', 'y')
+            break
+         }
+      }
+      return sl
    }
 }
 

@@ -7,53 +7,50 @@ import { config } from './configurator'
 // you can use angleMode() from the configurator module
 export function sin(x: number): number {
    let y = config.maths.aMode == 'RAD' ? x : x * pi/180
-   return Math.sin(y)
+   return fix(Math.sin(y))
 }
 
 export function cos(x: number): number {
    let y = config.maths.aMode == 'RAD' ? x : x * pi/180
-   return Math.cos(y)
+   return fix(Math.cos(y))
 }
 
 export function tan(x: number): number {
    let y = config.maths.aMode == 'RAD' ? x : x * pi/180
-   return Math.tan(y)
+   return fix(Math.tan(y))
 }
 
 export function asin(x: number): number {
-   let y = config.maths.aMode == 'RAD' ? x : x * pi/180
-   return Math.asin(y)
+   return fix(Math.asin(x))
 }
 
 export function acos(x: number): number {
-   let y = config.maths.aMode == 'RAD' ? x : x * pi/180
-   return Math.acos(y)
+   return fix(Math.acos(x))
 }
 
 export function atan(x: number): number {
-   let y = config.maths.aMode == 'RAD' ? x : x * pi/180
-   return Math.atan(y)
+   return fix(Math.atan(x))
 }
 
 export function sinh(x: number): number {
    let y = config.maths.aMode == 'RAD' ? x : x * pi/180
-   return Math.sinh(y)
+   return fix(Math.sinh(y))
 }
 
 export function cosh(x: number): number {
    let y = config.maths.aMode == 'RAD' ? x : x * pi/180
-   return Math.cosh(y)
+   return fix(Math.cosh(y))
 }
 
 export function tanh(x: number): number {
    let y = config.maths.aMode == 'RAD' ? x : x * pi/180
-   return Math.tanh(y)
+   return fix(Math.tanh(y))
 }
 
 // improved logarithm function, accepts an oprional base
 // default base is e but can be changed to anything
 export function log(x: number, base?: number): number {
-   return Math.log(x) / (base ? Math.log(base) : 1)
+   return fix(Math.log(x) / (base ? Math.log(base) : 1))
 }
 
 // rounds floats to a given number of digits after the decimal point
@@ -62,6 +59,16 @@ export function round(x: number, digits?: number): number {
    digits = digits || 0
    return Number(x.toFixed(digits))
 }
+
+// floors a float to an integer
+export function floor(x: number): number {
+   return (round(x) - x < 0) ? round(x) : round(x-0.5)
+}
+
+// ceils a float to an integer
+export function ceil(x: number): number {
+   return (round(x) - x > 0) ? round(x) : round(x+0.5)
+} 
 
 // sums up the numbers in an array
 export function sum(items: number[]): number {
@@ -110,10 +117,12 @@ export function smti(x: number): number {
    }
 }
 
+// find mean value of number array (average)
 export function mean(items: number[]): number {
    return sum(items) / items.length
 }
 
+// find median of number array
 export function medi(items: number[]): number {
    let a: number = min(items)
    let b: number = max(items)
@@ -121,6 +130,7 @@ export function medi(items: number[]): number {
    return (a + b)/2
 }
 
+// find maximum difference to mean value
 export function devi(items: number[]): number {
    let m: number = mean(items)
    let a: number = m - min(items)
@@ -129,12 +139,14 @@ export function devi(items: number[]): number {
    return a > b ? a : b
 }
 
+// finds minimum value of number array
 export function min(items: number[]): number {
    let m: number = items[0]
    items.forEach(e => e < m ? m = e : m)
    return m
 }
 
+// finds maximum value of number array
 export function max(items: number[]): number {
    let m: number = items[0]
    items.forEach(e => e > m ? m = e : m)
@@ -160,13 +172,9 @@ export function normDist(x: number, calc?: boolean): number {
       let factor: number = 1/Math.sqrt(2*pi)
       let erfx: number = erf(x/r2)
       let root: number = Math.sqrt(pi/2)
-   
-      let dist: number = factor * root * (erfx + 1)
-   
-      return dist
-   }
-   
-   else {
+      return factor * root * (erfx + 1)
+
+   } else {
       if(x > 1 && x <= 4) {
          return round(PHITABLE[round(x, 3)], 5)
       } else if(x > 4) {
@@ -205,10 +213,10 @@ export function erf(x: number, approx?: 1): number {
       let ex: number   = Math.exp(-xs)
    
       let sum1: number = a1*t
-      let sum2: number = a2*(Math.pow(t,2))
-      let sum3: number = a3*(Math.pow(t,3))
-      let sum4: number = a4*(Math.pow(t,4))
-      let sum5: number = a5*(Math.pow(t,5))
+      let sum2: number = a2*Math.pow(t,2)
+      let sum3: number = a3*Math.pow(t,3)
+      let sum4: number = a4*Math.pow(t,4)
+      let sum5: number = a5*Math.pow(t,5)
       let sum: number  = sum1+sum2+sum3+sum4+sum5
    
       let term: number = sum*ex
@@ -234,4 +242,31 @@ export function erf(x: number, approx?: 1): number {
       }
       return a*sum
    }
+}
+
+// PRIVATE helpers for this module
+
+// rounds small numbers to 10^-15
+function fix(x: number): number {
+   return round(x, 15)
+}
+
+// returns the slope of a line
+export function lin_m(x1: number, y1: number, x2: number, y2: number): number {
+   return (y2-y1)/(x2-x1)
+}
+
+// returns y-axis offset of linear equation that runs
+// through the points (x1, y1) and (x2, y2)
+export function lin_b(x1: number, y1: number, x2: number, y2: number): number {
+   let m: number = lin_m(x1, y1, x2, y2)
+   return y1-(m * x1)
+}
+
+// returns y-value for input x-value for a line between
+// (x1, y1) and (x2, y2)
+export function lin(x: number, x1: number, y1: number, x2: number, y2: number): number {
+   let m: number = lin_m(x1, y1, x2, y2)
+   let b: number = lin_b(x1, y1, x2, y2)
+   return m*x +b
 }
