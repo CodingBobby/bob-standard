@@ -10,6 +10,12 @@ var Molecule = /** @class */ (function () {
         this.count = 1;
         this.M = 0;
         this.valid = true;
+        if (constants_1.MLCLS.hasOwnProperty(formula)) {
+            this.props = constants_1.MLCLS[formula];
+        }
+        else {
+            this.props = undefined;
+        }
         var e = [];
         e = formula.match(/[A-Z]?[a-z]?[0-9]*/g);
         e.splice(e.length - 1);
@@ -59,11 +65,12 @@ var Molecule = /** @class */ (function () {
 }());
 exports.Molecule = Molecule;
 var Solution = /** @class */ (function () {
-    function Solution(substance, c) {
+    function Solution(substance, c, density) {
         this.substance = substance;
+        this.density = density;
         var n;
         if (c.unit == 'mass') {
-            n = c.amount / substance.M;
+            n = c.amount / this.substance.M;
         }
         else {
             n = c.amount;
@@ -71,6 +78,14 @@ var Solution = /** @class */ (function () {
         var V = c.volume;
         this.concentration = n / V;
     }
+    Solution.prototype.totalDensity = function () {
+        var dWater = 1000;
+        var dSubstance = this.density ? this.density : this.substance.props.density;
+        var vSubstance = this.concentration / dSubstance;
+    };
+    Solution.prototype.weight = function () { };
+    Solution.prototype.addWater = function (volume) { };
+    Solution.prototype.heat = function (celsius) { };
     return Solution;
 }());
 exports.Solution = Solution;
@@ -109,6 +124,20 @@ var Reaction = /** @class */ (function () {
         }
     };
     Reaction.prototype.balance = function () {
+        // this is the product of all the numbers that count atoms in the molecules
+        var molProduct = 1;
+        for (var i in this.educts) {
+            for (var j in this.educts[i].atoms) {
+                molProduct *= this.educts[i].atoms[j].count;
+            }
+        }
+        for (var i in this.products) {
+            for (var j in this.products[i].atoms) {
+                molProduct *= this.products[i].atoms[j].count;
+            }
+        }
+    };
+    Reaction.prototype.balanceold = function () {
         // this array will hold all atoms appearing in the reaction
         var totalAtoms = [];
         // initially count atoms
@@ -163,14 +192,17 @@ var Reaction = /** @class */ (function () {
         }
         function looper(that) {
             loopcounter++;
-            var _loop_5 = function (eM) {
-                var _loop_6 = function (eA) {
+            for (var eM in that.educts) { // each is of Molecule
+                for (var eA in that.educts[eM].atoms) { // each is of Atom
                     var eductCount = that.educts[eM].count * that.educts[eM].atoms[eA].count;
                     for (var pM in that.products) { // each is of Molecule
                         // that function checks if a Molecule contains an Atom,
                         // returns true of the element properties are equal
                         var moleculeHas = function (atom) {
-                            return atom.element == that.educts[eM].atoms[eA].element;
+                            // NOTE: FIX THIS:
+                            //    == that.edu...
+                            //     ^-- unexpected Token!
+                            // return atom.element.toString == that.educts[eM].atoms[eA].element.toString()
                         };
                         var pA = that.products[pM].atoms.findIndex(moleculeHas);
                         // runs, if the current product Molecule contains the current Atom of the educt
@@ -191,13 +223,7 @@ var Reaction = /** @class */ (function () {
                             }
                         }
                     }
-                };
-                for (var eA in that.educts[eM].atoms) {
-                    _loop_6(eA);
                 }
-            };
-            for (var eM in that.educts) {
-                _loop_5(eM);
             }
         }
     };
