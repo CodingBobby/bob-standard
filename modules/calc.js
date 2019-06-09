@@ -169,10 +169,8 @@ exports.factorial = factorial;
 // 4 or below -4 will be set to 1 and 0 respectively
 function normDist(x, calc) {
     if (calc) {
-        var factor = 1 / Math.sqrt(2 * constants_1.pi);
         var erfx = erf(x / constants_1.r2);
-        var root = Math.sqrt(constants_1.pi / 2);
-        return factor * root * (erfx + 1);
+        return (erfx + 1) * 0.5;
     }
     else {
         if (x > 1 && x <= 4) {
@@ -225,16 +223,16 @@ function erf(x, approx) {
     }
     else {
         var a = 2 / constants_1.rpi;
+        var c = Math.pow(x, 2);
         // virtual inifinity to limit the loop, still provides
         // very high accuracy
-        var inf = 100;
+        var inf = 24;
         var sum_2 = 0;
         for (var n = 0; n < inf; n++) {
             var b = 2 * n + 1;
             var part = x / b;
             var prod = 1;
             for (var k = 1; k <= n; k++) {
-                var c = Math.pow(x, 2);
                 prod *= -(c / k);
             }
             sum_2 += part * prod;
