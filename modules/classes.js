@@ -275,6 +275,9 @@ var Line2D = /** @class */ (function () {
         var nom = this.dir.x - this.pos.x;
         return den / nom;
     };
+    Line2D.prototype.intercept = function () {
+        return this.pos.y - (this.slope() * this.pos.x);
+    };
     return Line2D;
 }());
 exports.Line2D = Line2D;
@@ -317,6 +320,50 @@ var Line3D = /** @class */ (function () {
     return Line3D;
 }());
 exports.Line3D = Line3D;
+var Plane = /** @class */ (function () {
+    function Plane(pos, dir1, dir2) {
+        this.pos = pos;
+        this.dir1 = dir1;
+        this.dir2 = dir2;
+        this.form = 'normal';
+    }
+    Plane.fromPoints = function (A, B, C) {
+        var pos;
+        var dir1;
+        var dir2;
+        var a = A.mag();
+        var b = B.mag();
+        var c = C.mag();
+        if (a < b) {
+            if (c < a) {
+                pos = C;
+                dir1 = A.norm(1);
+                dir2 = B.norm(1);
+            }
+            else {
+                pos = A;
+                dir1 = B.norm(1);
+                dir2 = C.norm(1);
+            }
+        }
+        else {
+            if (c < b) {
+                pos = C;
+                dir1 = A.norm(1);
+                dir2 = B.norm(1);
+            }
+            else {
+                pos = B;
+                dir1 = A.norm(1);
+                dir2 = C.norm(1);
+            }
+        }
+        return new Plane(pos, dir1, dir2);
+    };
+    return Plane;
+}());
+exports.Plane = Plane;
+// MATRICES
 var Matrix = /** @class */ (function () {
     function Matrix(data) {
         this.data = data;

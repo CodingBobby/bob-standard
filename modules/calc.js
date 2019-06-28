@@ -119,6 +119,11 @@ function smti(x) {
     }
 }
 exports.smti = smti;
+// simple average of two values
+function avg(a, b) {
+    return (a + b) * .5;
+}
+exports.avg = avg;
 // find mean value of number array (average)
 function mean(items) {
     return sum(items) / items.length;
@@ -225,7 +230,7 @@ function erf(x, approx) {
         var a = 2 / constants_1.rpi;
         var c = Math.pow(x, 2);
         // virtual inifinity to limit the loop, still provides
-        // very high accuracy
+        // maximum possible accuracy
         var inf = 24;
         var sum_2 = 0;
         for (var n = 0; n < inf; n++) {

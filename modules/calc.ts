@@ -117,6 +117,11 @@ export function smti(x: number): number {
    }
 }
 
+// simple average of two values
+export function avg(a: number, b: number): number {
+   return (a + b)*.5
+}
+
 // find mean value of number array (average)
 export function mean(items: number[]): number {
    return sum(items) / items.length
@@ -223,7 +228,7 @@ export function erf(x: number, approx?: 1): number {
       let a: number   = 2/rpi
       let c: number   = Math.pow(x, 2)
       // virtual inifinity to limit the loop, still provides
-      // very high accuracy
+      // maximum possible accuracy
       let inf: number = 24
       let sum: number = 0
 

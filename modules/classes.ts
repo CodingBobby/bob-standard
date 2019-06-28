@@ -1,6 +1,6 @@
 import { round } from './calc'
-import { err } from './helpers'
-import { axis } from './types'
+import { err, say } from './helpers'
+import { axis, dim } from './types'
 
 // VECTORS
 
@@ -275,6 +275,10 @@ export class Line2D {
       let nom: number = this.dir.x - this.pos.x
       return den/nom
    }
+
+   public intercept(): number {
+      return this.pos.y-(this.slope() * this.pos.x)
+   }
 }
 
 export class Line3D {
@@ -317,10 +321,49 @@ export class Line3D {
    }
 }
 
-// MATRICES
+export class Plane {
+   public form: String
 
-// dimension type to allow matrix sizes
-type dim<keys, values> = { width: number, height: number}
+   constructor(public pos: Vector3D, public dir1: Vector3D, public dir2: Vector3D) {
+      this.form = 'normal'
+   }
+
+   static fromPoints(A: Vector3D, B: Vector3D, C: Vector3D): Plane {
+      let pos: Vector3D
+      let dir1: Vector3D
+      let dir2: Vector3D
+   
+      let a = A.mag()
+      let b = B.mag()
+      let c = C.mag()
+   
+      if(a < b) {
+         if(c < a) {
+            pos = C
+            dir1 = A.norm(1)
+            dir2 = B.norm(1)
+         } else {
+            pos = A
+            dir1 = B.norm(1)
+            dir2 = C.norm(1)
+         }
+      } else {
+         if(c < b) {
+            pos = C
+            dir1 = A.norm(1)
+            dir2 = B.norm(1)
+         } else {
+            pos = B
+            dir1 = A.norm(1)
+            dir2 = C.norm(1)
+         }
+      }
+   
+      return new Plane(pos, dir1, dir2)
+   }
+}
+
+// MATRICES
 
 export class Matrix {
    constructor(public data: number[][]) {}
