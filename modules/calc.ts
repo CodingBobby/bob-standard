@@ -117,6 +117,11 @@ export function smti(x: number): number {
    }
 }
 
+// simple average of two values
+export function avg(a: number, b: number): number {
+   return (a + b)*.5
+}
+
 // find mean value of number array (average)
 export function mean(items: number[]): number {
    return sum(items) / items.length
@@ -169,11 +174,8 @@ export function factorial(x: number): number {
 // 4 or below -4 will be set to 1 and 0 respectively
 export function normDist(x: number, calc?: boolean): number {
    if(calc) {
-      let factor: number = 1/Math.sqrt(2*pi)
       let erfx: number = erf(x/r2)
-      let root: number = Math.sqrt(pi/2)
-      return factor * root * (erfx + 1)
-
+      return (erfx + 1)*0.5
    } else {
       if(x > 1 && x <= 4) {
          return round(PHITABLE[round(x, 3)], 5)
@@ -224,9 +226,10 @@ export function erf(x: number, approx?: 1): number {
 
    } else {
       let a: number   = 2/rpi
+      let c: number   = Math.pow(x, 2)
       // virtual inifinity to limit the loop, still provides
-      // very high accuracy
-      let inf: number = 100 
+      // maximum possible accuracy
+      let inf: number = 24
       let sum: number = 0
 
       for(let n=0; n<inf; n++) {
@@ -235,7 +238,6 @@ export function erf(x: number, approx?: 1): number {
          let prod: number = 1
 
          for(let k=1; k<=n; k++) {
-            let c: number = Math.pow(x, 2)
             prod *= -(c/k)
          }
          sum += part*prod

@@ -1,5 +1,5 @@
 import { round } from './calc'
-import { PSE } from './constants'
+import { PSE, MLCLS } from './constants'
 import { objIndex, err } from './helpers'
 
 /**
@@ -25,6 +25,13 @@ export interface Atom {
    }
 }
 
+export interface molProperties {
+   name: string
+   density: number
+   boil: number
+   freeze: number
+}
+
 /**
  * interface for Molecules, it basically contains an array of
  * Atom interfaces and an additional counter to make stochiometrical
@@ -32,6 +39,7 @@ export interface Atom {
  */
 export interface Molecule {
    formula: string
+   props: molProperties
    atoms: Atom[]
    count: number
    M: number
@@ -46,12 +54,19 @@ export interface Reaction {
 // USE OF INTERFACES IN CLASSES
 
 export class Molecule {
+   public props: molProperties
    public atoms: Atom[]
    public count: number = 1
    public M: number = 0
    public valid: boolean = true
 
    constructor(public formula: string) {
+      if(MLCLS.hasOwnProperty(formula)) {
+         this.props = MLCLS[formula]
+      } else {
+         this.props = undefined
+      }
+
       let e = []
       e = formula.match(/[A-Z]?[a-z]?[0-9]*/g)
       e.splice(e.length-1)
@@ -120,16 +135,28 @@ type concentration = {
 
 export class Solution {
    public concentration: number
-   constructor(public substance: Molecule, c: concentration) {
+   constructor(public substance: Molecule, c: concentration, public density?: number) {
       let n: number
       if(c.unit == 'mass') {
-         n = c.amount / substance.M
+         n = c.amount / this.substance.M
       } else {
          n = c.amount
       }
       let V = c.volume
       this.concentration = n / V
    }
+
+   public totalDensity() {
+      let dWater = 1000
+      let dSubstance = this.density ? this.density : this.substance.props.density 
+      let vSubstance = this.concentration/dSubstance
+   }
+
+   public weight() {}
+
+   public addWater(volume: number) {}
+
+   public heat(celsius: number) {}
 }
 
 /**
@@ -169,6 +196,21 @@ export class Reaction {
    }
 
    public balance() {
+      // this is the product of all the numbers that count atoms in the molecules
+      let molProduct: number = 1
+      for(let i in this.educts) {
+         for(let j in this.educts[i].atoms) {
+            molProduct *= this.educts[i].atoms[j].count
+         } 
+      }
+      for(let i in this.products) {
+         for(let j in this.products[i].atoms) {
+            molProduct *= this.products[i].atoms[j].count
+         } 
+      }
+   }
+
+   public balanceold() {
       // this array will hold all atoms appearing in the reaction
       let totalAtoms: Atom[] = []
       // initially count atoms
@@ -225,8 +267,12 @@ export class Reaction {
                for(let pM in that.products) { // each is of Molecule
                   // that function checks if a Molecule contains an Atom,
                   // returns true of the element properties are equal
-                  let moleculeHas = atom => {
-                     return atom.element == that.educts[eM].atoms[eA].element
+                  let moleculeHas = atom => {
+                     // NOTE: FIX THIS:
+                     //    == that.edu...
+                     //     ^-- unexpected Token!
+
+                     // return atom.element.toString == that.educts[eM].atoms[eA].element.toString()
                   }
    
                   let pA = that.products[pM].atoms.findIndex(moleculeHas)

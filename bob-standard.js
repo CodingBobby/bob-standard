@@ -11,3 +11,5 @@ __export(require("./modules/classes"));
 __export(require("./modules/constants"));
 __export(require("./modules/chemistry"));
 __export(require("./modules/configurator"));
+__export(require("./modules/processes"));
+__export(require("./modules/crypto"));
